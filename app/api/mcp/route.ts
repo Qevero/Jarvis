@@ -12,7 +12,7 @@ import { createVaultService } from "@/lib/vault/service";
  */
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 26;
+export const maxDuration = 60;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",

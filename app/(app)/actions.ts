@@ -171,7 +171,7 @@ export async function overrideLineAction(fd: FormData) {
 export async function syncXeroAction(): Promise<ActionState> {
   try {
     const ctx = await dashboardCtx("/settings");
-    const r = await syncXero(ctx, { budgetMs: 8000 });
+    const r = await syncXero(ctx, { budgetMs: 25_000 });
     revalidatePath("/", "layout");
     if (r.error) return { ok: false, message: r.error };
     const rows = Object.values(r.resources).reduce((a, x) => a + x.rows, 0);

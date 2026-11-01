@@ -47,7 +47,7 @@ export async function runTick(opts: { force?: boolean } = {}) {
     if (xero?.status === "active") {
       const last = await lastSync(ctx);
       const due = opts.force || !last?.last_success_at || Date.now() - Date.parse(last.last_success_at) > prefs.xeroSyncHours * 3_600_000 || (last.last_error && last.last_run_at && Date.now() - Date.parse(last.last_run_at) > 3_600_000);
-      report.xero = due ? await syncXero(ctx, { budgetMs: 7000 }) : "not due";
+      report.xero = due ? await syncXero(ctx, { budgetMs: 20_000 }) : "not due";
     } else report.xero = "not connected";
   } catch (e) {
     report.xero = { error: e instanceof Error ? e.message : "failed" };

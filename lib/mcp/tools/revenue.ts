@@ -90,6 +90,6 @@ export function registerRevenueTools(server: McpServer, ctx: Ctx) {
   server.registerTool(
     "sync_xero",
     { title: "Refresh from Xero", description: "Pull the latest invoices, bills, credit notes, contacts and bank transactions from Xero now (incremental, within the daily call budget).", inputSchema: {} },
-    async () => run(async () => syncXero(ctx, { budgetMs: 15_000 })),
+    async () => run(async () => syncXero(ctx, { budgetMs: 25_000 })),
   );
 }

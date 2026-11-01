@@ -110,6 +110,19 @@ Jarvis tracks and prepares. It never submits anything to HMRC or Companies House
 
 MCP tools: `get_upcoming_deadlines`, `get_vat_position(quarter)`, `get_vat_issues`, `get_tax_set_aside`, `mark_deadline_done`
 
+### 4.6 Invoices, quotes, proposals and purchase orders (added 01/11/2026)
+
+- Raise standard sales invoices, quotes and purchase orders in Xero — always as DRAFTS; Jasper approves and sends in Xero.
+- Proposals are written in Jarvis (templates per stream, sections, one-off and monthly pricing, deposit %), printed to A4/PDF, optionally mirrored to a Xero quote, and turned into a deposit/full/monthly draft invoice when accepted.
+- Standard rate VAT (20%) by default; per-line stream tagging via the Xero "Revenue Stream" tracking category.
+
+MCP tools: `create_invoice_draft`, `create_quote_draft`, `create_purchase_order_draft`, `list_invoices`, `get_invoice`, `list_quotes_and_purchase_orders`, `draft_chase_email`, `create_proposal`, `update_proposal`, `get_proposal`, `list_proposals`, `set_proposal_status`, `proposal_to_xero_quote`, `invoice_from_proposal`
+
+### 4.7 Memory and internal CRM (added 01/11/2026)
+
+- Memory: durable knowledge (`remember`/`recall`) plus Jasper's imported Claude chat history (Claude data export), searchable from any chat. No live access to claude.ai — no API exists and the brief forbids using his Claude login.
+- Internal CRM: Qevero/qevero-crm (separate Supabase project). Read-only via a token-gated SQL function (`integrations/qevero-crm/jarvis_connector.sql`).
+
 ## 5. Security and data handling
 
 - Single user (Jasper). Supabase Auth with MFA on the dashboard. RLS on every table.
@@ -143,7 +156,7 @@ MCP tools: `get_upcoming_deadlines`, `get_vat_position(quarter)`, `get_vat_issue
 Answered 01/11/2026:
 
 1. Outlook: personal Microsoft account, **qevero@outlook.com** (not Microsoft 365). Graph setup uses the personal-account ("consumers") endpoint.
-2. VAT: **quarterly** returns. Still needed: the exact quarter end months (on the VAT certificate) and the scheme (standard, flat rate, cash accounting).
+2. VAT: **quarterly**, **Standard** scheme, quarters end **Mar, Jun, Sep, Dec**. VAT number **GB531607691**. Company number **17497612**. First VAT period assumed 03/10/2026–31/12/2026 (check the certificate).
 3. Accounting year end: **31/10**. First accounting period 03/10/2026 to 31/10/2027 (to confirm with the accountant).
 4. Revenue streams: invoices **will be tagged** in Xero with the "Revenue Stream" tracking category.
 
@@ -155,3 +168,16 @@ Answered 01/11/2026:
 - The MCP endpoint is stateless Streamable HTTP (JSON responses) at `/api/mcp`. Tokens must have `client_id`, the owner's email and this project's issuer.
 - Sensitive vault fields are encrypted in the app (AES-256-GCM, `VAULT_ENCRYPTION_KEY`) before reaching Postgres.
 - Next.js ships its own docs in `node_modules/next/dist/docs/`; read them before using unfamiliar APIs (see `AGENTS.md`).
+- 01/11/2026: Jasper asked for the bulk of all phases to be built in one go (phase gates relaxed for this build); review everything together.
+- Xero: own Web app, PKCE, broad scopes by default (`XERO_SCOPES` override), incremental mirror in Supabase with a daily call budget (default 900) and 6-hourly sync; documents only ever created as DRAFT.
+- Microsoft: personal account (`consumers`), delegated scopes without `Mail.Send`; calendar events without attendees.
+- Scheduled work: one hourly Netlify scheduled function → `/api/cron/tick` (CRON_SECRET), which uses `SUPABASE_SECRET_KEY` (scheduled jobs only, every query filtered by owner_id).
+- Reminders: free Web Push (VAPID) + Microsoft To Do tasks for deadlines.
+- Charts: hand-built SVG with the dataviz-validated palette in `lib/chart-colours.ts`.
+- Deadline rules use month-end-to-month-end counting for HMRC/Companies House periods ending on a month end (e.g. VAT quarter to 30/06 → due 07/08).
+
+## 10. Build status (01/11/2026)
+
+Built: all modules in §4 (vault, journal, revenue analytics + flags + mapping, To Do/calendar/mail, tax tracker, invoicing/proposals/POs, memory, CRM), ~65 MCP tools, dashboard pages, push notifications, hourly cron, desktop wake-word script (`desktop/wake-word`, licence caveat). Tests: domain logic, MCP endpoint, SQL (RLS) in PGlite, CRM connector against the CRM's migrations.
+
+Not yet done (needs Jasper): create the Supabase project and run both migrations; Netlify site + env vars; Xero app; Entra app; CRM connector SQL + token; VAPID keys; accountant confirmation of tax rules.

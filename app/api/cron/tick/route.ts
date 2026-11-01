@@ -3,7 +3,7 @@ import { env } from "@/lib/env";
 import { runTick } from "@/lib/cron/tick";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 26;
+export const maxDuration = 60;
 
 function authorised(request: Request) {
   const secret = env.cronSecret();

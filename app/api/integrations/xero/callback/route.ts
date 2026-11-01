@@ -8,7 +8,7 @@ import { exchangeXeroCode, xeroTenants } from "@/lib/xero/client";
 import { syncXero } from "@/lib/xero/sync";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 26;
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const back = (q: string) => NextResponse.redirect(new URL(`/settings?xero=${q}`, env.siteUrl()));
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     const tenant = tenants.find((x) => /qevero/i.test(x.tenantName)) ?? tenants[0];
     await saveTokens(ctx, "xero", { accessToken: t.access_token, refreshToken: t.refresh_token, expiresIn: t.expires_in, scopes: t.scope ?? null, tenantId: tenant.tenantId, tenantName: tenant.tenantName, accountLabel: tenant.tenantName });
     await audit(ctx, "xero.connect", tenant.tenantId, { organisation: tenant.tenantName });
-    await syncXero(ctx, { budgetMs: 12_000 }).catch(() => null);
+    await syncXero(ctx, { budgetMs: 30_000 }).catch(() => null);
     return back("connected");
   } catch {
     return back("failed");
