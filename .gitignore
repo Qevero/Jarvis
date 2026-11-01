@@ -42,3 +42,6 @@ next-env.d.ts
 
 # allow the template
 !.env.example
+
+# reference clone of the internal CRM (separate repo, never commit)
+/qevero-crm/
