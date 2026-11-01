@@ -9,8 +9,7 @@ import { useState } from "react";
  * yellow, magenta.
  */
 
-export const SERIES_COLOURS = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181"];
-export const NEUTRAL = "#5b6b7c";
+import { SERIES_COLOURS } from "@/lib/chart-colours";
 
 const gbp = (n: number) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: n >= 1000 || n <= -1000 ? 0 : 2 }).format(n);
 const short = (n: number) => (Math.abs(n) >= 1000 ? `£${(n / 1000).toFixed(Math.abs(n) >= 10000 ? 0 : 1)}k` : `£${Math.round(n)}`);
@@ -91,13 +90,13 @@ export function StackedBars({ categories, series, height = 220, title }: { categ
                     <rect key={g.s.id} pointerEvents="none" x={x} y={y} width={barW} height={Math.max(0, h - gap)} fill={g.s.colour} />
                   );
                 })}
-                <text x={padL + step * i + step / 2} y={H - 6} textAnchor="middle" fontSize="11" fill="#8aa4bd">{c}</text>
+                {(categories.length <= 8 || i % 2 === 0 || i === categories.length - 1) && <text x={padL + step * i + step / 2} y={H - 6} textAnchor="middle" fontSize="11" fill="#8aa4bd">{c}</text>}
               </g>
             );
           })}
         </svg>
         {hover !== null && (
-          <div className="pointer-events-none absolute top-0 z-10 min-w-40 rounded-lg border border-line-strong bg-bg-elev p-2.5 text-xs shadow-lg" style={{ left: `${Math.min(70, ((padL + step * hover) / W) * 100)}%` }}>
+          <div className="pointer-events-none absolute top-0 z-10 min-w-40 rounded-lg border border-line-strong bg-bg-elev p-2.5 text-xs shadow-lg" style={hover < categories.length / 2 ? { left: `${((padL + step * (hover + 1)) / W) * 100}%` } : { right: `${100 - ((padL + step * hover) / W) * 100}%` }}>
             <p className="mb-1 font-medium">{categories[hover]}</p>
             {series.map((s) => (
               <p key={s.id} className="flex items-center justify-between gap-3"><span className="flex items-center gap-1.5 text-muted"><span className="inline-block h-2 w-2 rounded-sm" style={{ background: s.colour }} />{s.label}</span><span className="font-mono tabular-nums">{gbp(s.values[hover] ?? 0)}</span></p>
