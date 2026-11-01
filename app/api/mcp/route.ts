@@ -12,6 +12,7 @@ import { createVaultService } from "@/lib/vault/service";
  */
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 26;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -42,12 +43,11 @@ async function handle(request: Request): Promise<Response> {
   if (!verified.ok) return withCors(unauthorizedResponse(siteUrl, verified.description, verified.error));
 
   const supabase = supabaseWithToken(token);
-  const vault = createVaultService(supabaseVaultStore(supabase), {
-    key: env.vaultKey(),
-    actor: { source: "mcp", clientId: verified.auth.clientId },
-  });
+  const actor = { source: "mcp" as const, clientId: verified.auth.clientId };
+  const vault = createVaultService(supabaseVaultStore(supabase), { key: env.vaultKey(), actor });
+  const ctx = { sb: supabase, ownerId: String(verified.auth.extra?.userId), actor };
 
-  const server = buildMcpServer(vault);
+  const server = buildMcpServer({ ctx, vault });
   const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
   await server.connect(transport);
   try {

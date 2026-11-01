@@ -77,7 +77,13 @@ describe("MCP endpoint", () => {
     expect(initBody.result.instructions).toContain("Qevero");
 
     const list = await (await rpc("tools/list")).json();
-    expect(list.result.tools.map((t: { name: string }) => t.name).sort()).toEqual(["get_company_profile", "get_document", "list_documents", "update_company_field"]);
+    const names: string[] = list.result.tools.map((t: { name: string }) => t.name);
+    for (const n of ["get_company_profile", "get_document", "list_documents", "update_company_field", "save_journal_entry", "remember", "get_revenue_summary", "get_attention_flags", "create_invoice_draft", "create_purchase_order_draft", "create_proposal", "add_task", "get_calendar", "create_email_draft", "get_upcoming_deadlines", "get_vat_position", "crm_overview", "get_morning_briefing"]) {
+      expect(names).toContain(n);
+    }
+    // Jarvis never sends: no tool may send email.
+    expect(names.some((n) => /send/i.test(n))).toBe(false);
+    expect(names.length).toBeGreaterThan(55);
   });
 
   it("answers “what's our VAT number?”", async () => {
@@ -111,6 +117,14 @@ describe("MCP endpoint", () => {
     const res = await callTool("update_company_field", { key: "vat_number", value: "nonsense" });
     expect(res.isError).toBe(true);
     expect(res.content[0].text).toMatch(/GB followed by 9 digits/);
+  });
+
+  it("previews Xero drafts until confirm=true", async () => {
+    const res = await callTool("create_invoice_draft", { contact: "World of Beds", lines: [{ description: "Website build", quantity: 1, unit_price: 4500, stream: "website_builds" }] });
+    const data = JSON.parse(res.content[0].text);
+    expect(data).toMatchObject({ preview: true, kind: "invoice", net: "£4,500.00", vat: "£900.00", total: "£5,400.00" });
+    const po = JSON.parse((await callTool("create_purchase_order_draft", { contact: "Stock Photos Ltd", lines: [{ description: "Licences", quantity: 2, unit_price: 25 }] })).content[0].text);
+    expect(po).toMatchObject({ preview: true, total: "£60.00" });
   });
 
   it("lists documents", async () => {
