@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+/* Jarvis HUD theme — original design, dark only. */
+:root {
+  --bg: #05080d;
+  --bg-elev: #0a1119;
+  --panel: rgba(14, 26, 38, 0.72);
+  --line: rgba(120, 220, 255, 0.16);
+  --line-strong: rgba(120, 220, 255, 0.38);
+  --fg: #e6f1ff;
+  --muted: #8aa4bd;
+  --accent: #38e1ff;
+  --accent-dim: #1b8fb0;
+  --warn: #ffb547;
+  --danger: #ff5d73;
+  --ok: #4be3a2;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-elev: var(--bg-elev);
+  --color-panel: var(--panel);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(56, 225, 255, 0.12), transparent 60%),
+    linear-gradient(rgba(120, 220, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 220, 255, 0.035) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+  background-attachment: fixed;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer components {
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  }
+  .hud-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 48px;
+    padding: 0 1.1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 1px solid var(--line-strong);
+    transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+    touch-action: manipulation;
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #031018;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #6fe9ff;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--fg);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: rgba(56, 225, 255, 0.08);
+  }
+  .btn-sm {
+    min-height: 40px;
+    padding: 0 0.8rem;
+    font-size: 0.85rem;
+  }
+  .input {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 0.85rem;
+    border-radius: 10px;
+    background: var(--bg-elev);
+    border: 1px solid var(--line);
+    color: var(--fg);
+    font-size: 16px; /* stops iOS zooming on focus */
+  }
+  textarea.input {
+    padding: 0.7rem 0.85rem;
+    min-height: 88px;
+  }
+  .input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(56, 225, 255, 0.18);
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--line-strong);
+    color: var(--muted);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hud-spin {
+    animation: hud-spin 18s linear infinite;
+    transform-origin: 50% 50%;
+  }
+  @keyframes hud-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}

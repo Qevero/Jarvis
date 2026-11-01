@@ -140,7 +140,18 @@ MCP tools: `get_upcoming_deadlines`, `get_vat_position(quarter)`, `get_vat_issue
 
 ## 8. Open questions (for Jasper)
 
-1. Is Outlook a Microsoft 365 Business account on qevero.com, or a personal Outlook.com address? This changes the Graph setup.
-2. What VAT quarter end dates has HMRC assigned? And which VAT scheme is Qevero on (standard, flat rate, cash accounting)?
-3. What is the accounting year end?
-4. Are invoices already tagged by revenue stream in Xero? If not, we set up the tracking category first.
+Answered 01/11/2026:
+
+1. Outlook: personal Microsoft account, **qevero@outlook.com** (not Microsoft 365). Graph setup uses the personal-account ("consumers") endpoint.
+2. VAT: **quarterly** returns. Still needed: the exact quarter end months (on the VAT certificate) and the scheme (standard, flat rate, cash accounting).
+3. Accounting year end: **31/10**. First accounting period 03/10/2026 to 31/10/2027 (to confirm with the accountant).
+4. Revenue streams: invoices **will be tagged** in Xero with the "Revenue Stream" tracking category.
+
+## 9. Decisions log
+
+- Claude plan: Pro (custom connectors supported).
+- MCP OAuth: **Supabase Auth's OAuth 2.1 server** (beta, free on all plans) with dynamic client registration. Jarvis hosts the consent page at `/oauth/consent`. Approval requires owner login with MFA (aal2) and a redirect URI on the allowlist (Claude's callbacks).
+- Next.js 16 with Cache Components **off**: authenticated pages render per request and are never cached server-side.
+- The MCP endpoint is stateless Streamable HTTP (JSON responses) at `/api/mcp`. Tokens must have `client_id`, the owner's email and this project's issuer.
+- Sensitive vault fields are encrypted in the app (AES-256-GCM, `VAULT_ENCRYPTION_KEY`) before reaching Postgres.
+- Next.js ships its own docs in `node_modules/next/dist/docs/`; read them before using unfamiliar APIs (see `AGENTS.md`).
