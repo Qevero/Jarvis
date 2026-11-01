@@ -27,19 +27,19 @@ export const VAT_SCHEMES = ["Standard", "Flat Rate", "Cash Accounting", "Annual 
 export const FIELDS: readonly VaultField[] = [
   { key: "legal_name", label: "Legal name", section: "Company", type: "text", seed: "Qevero Ltd" },
   { key: "trading_name", label: "Trading name", section: "Company", type: "text", seed: "Qevero" },
-  { key: "company_number", label: "Company number", section: "Company", type: "text", hint: "8 characters, e.g. 12345678" },
+  { key: "company_number", label: "Company number", section: "Company", type: "text", hint: "8 characters, e.g. 12345678", seed: "17497612" },
   { key: "incorporation_date", label: "Incorporation date", section: "Company", type: "date", seed: "2026-10-03" },
   { key: "registered_office", label: "Registered office", section: "Company", type: "longtext" },
   { key: "sic_codes", label: "SIC codes", section: "Company", type: "text" },
   { key: "website", label: "Website", section: "Company", type: "text", seed: "https://qevero.com" },
   { key: "accounting_year_end", label: "Accounting year end", section: "Company", type: "daymonth", seed: "31/10", hint: "DD/MM" },
 
-  { key: "vat_number", label: "VAT number", section: "VAT", type: "text", hint: "e.g. GB123456789" },
+  { key: "vat_number", label: "VAT number", section: "VAT", type: "text", hint: "e.g. GB123456789", seed: "GB531607691" },
   { key: "vat_registration_date", label: "VAT registration date", section: "VAT", type: "date", seed: "2026-10-03" },
   { key: "vat_return_frequency", label: "VAT return frequency", section: "VAT", type: "enum", options: ["Quarterly", "Monthly", "Annual"], seed: "Quarterly" },
-  { key: "vat_scheme", label: "VAT scheme", section: "VAT", type: "enum", options: VAT_SCHEMES },
-  { key: "vat_quarter_ends", label: "VAT quarter end months", section: "VAT", type: "text", hint: "As on your VAT certificate, e.g. Jan, Apr, Jul, Oct" },
-  { key: "vat_first_period_end", label: "First VAT period end", section: "VAT", type: "date" },
+  { key: "vat_scheme", label: "VAT scheme", section: "VAT", type: "enum", options: VAT_SCHEMES, seed: "Standard" },
+  { key: "vat_quarter_ends", label: "VAT quarter end months", section: "VAT", type: "text", hint: "As on your VAT certificate, e.g. Mar, Jun, Sep, Dec", seed: "Mar, Jun, Sep, Dec" },
+  { key: "vat_first_period_end", label: "First VAT period end", section: "VAT", type: "date", seed: "2026-12-31", hint: "Check against your VAT certificate — HMRC sometimes sets a longer first period" },
 
   { key: "corporation_tax_utr", label: "Corporation tax UTR", section: "Corporation tax", type: "text", sensitive: true, hint: "10 digits" },
 
@@ -49,6 +49,8 @@ export const FIELDS: readonly VaultField[] = [
 
   { key: "accountant_name", label: "Accountant", section: "Advisers", type: "text" },
   { key: "accountant_email", label: "Accountant email", section: "Advisers", type: "email" },
+  { key: "payroll_enabled", label: "Payroll (PAYE) running", section: "Corporation tax", type: "enum", options: ["No", "Yes"], seed: "No", hint: "Turns on PAYE/RTI deadlines" },
+  { key: "ct_start_date", label: "Corporation tax start date", section: "Corporation tax", type: "date", hint: "When Qevero started trading (first CT period starts here). Defaults to the incorporation date." },
 ] as const;
 
 const BY_KEY = new Map(FIELDS.map((f) => [f.key, f]));
