@@ -1,7 +1,7 @@
 import type { InvoiceRow, LineRow } from "@/lib/revenue/types";
 
 let n = 0;
-export function invoice(p: Partial<InvoiceRow> & { date: string }): InvoiceRow {
+export function invoice(p: Partial<InvoiceRow> & { date: string | null }): InvoiceRow {
   n++;
   return {
     invoice_id: p.invoice_id ?? `inv-${n}`,
@@ -47,7 +47,7 @@ export function line(invoiceId: string, net: number, p: Partial<LineRow> = {}): 
 }
 
 /** Build an invoice with one line in a stream. */
-export function sale(date: string, net: number, stream: string | null, p: Partial<InvoiceRow> = {}) {
+export function sale(date: string, net: number, stream: string | null, p: Partial<Omit<InvoiceRow, "date">> = {}) {
   const inv = invoice({ date, sub_total: net, total_tax: net * 0.2, total: net * 1.2, ...p });
   return { inv, lines: [line(inv.invoice_id, net, { stream_option: stream })] };
 }
