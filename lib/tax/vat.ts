@@ -45,7 +45,8 @@ export function vatPosition(
     const rate = Number(i.currency_rate) > 0 ? Number(i.currency_rate) : 1;
     const sign = i.type.endsWith("CREDIT") ? -1 : 1;
     const isSales = SALES_TYPES.has(i.type);
-    isSales ? nSales++ : nBills++;
+    if (isSales) nSales++;
+    else nBills++;
     for (const l of linesBy.get(i.invoice_id) ?? []) {
       const tax = (sign * Number(l.tax_amount)) / rate;
       const net = (sign * Number(l.net_amount)) / rate;

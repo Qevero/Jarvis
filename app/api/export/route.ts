@@ -20,6 +20,17 @@ export async function GET() {
 
   const [fields, items, documents] = await Promise.all([vault.getProfile({ reveal: true }), store.listItems(), store.listDocuments()]);
   const { data: auditRows } = await supabase.from("audit_log").select("*").order("occurred_at", { ascending: true });
+  const tables = ["settings", "journal_entries", "knowledge_items", "chat_conversations", "chat_messages", "clients", "proposals", "stream_account_map", "stream_line_overrides", "deadline_status", "tax_rule_verifications", "xero_documents", "xero_contacts", "xero_invoices", "xero_invoice_lines", "xero_bank_transactions"];
+  const extra: Record<string, unknown[]> = {};
+  for (const t of tables) {
+    const rows: unknown[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data: page } = await supabase.from(t).select(t === "chat_messages" ? "conversation_id, position, sender, sent_at, body" : "*").range(from, from + 999);
+      rows.push(...(page ?? []));
+      if (!page || page.length < 1000) break;
+    }
+    extra[t] = rows;
+  }
   await store.appendAudit({ source: "dashboard", action: "data.export_all" });
 
   const body = {
@@ -30,6 +41,8 @@ export async function GET() {
     vault_items: items,
     documents,
     audit_log: auditRows ?? [],
+    ...extra,
+    note_integrations: "Xero and Microsoft OAuth tokens are deliberately excluded.",
   };
 
   return new NextResponse(JSON.stringify(body, null, 2), {
