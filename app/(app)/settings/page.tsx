@@ -8,7 +8,7 @@ import { dashboardVault } from "@/lib/vault/dashboard";
 import { CopyButton } from "@/components/copy-button";
 import { ActionForm, InlineAction } from "@/components/forms";
 import { PushToggle } from "@/components/push-toggle";
-import { Panel } from "@/components/ui";
+import { Panel, Tabs } from "@/components/ui";
 import { connectHevyAction, createIngestTokenAction, disconnectAction, revokeIngestTokenAction, savePersonalPrefsAction, savePrefsAction, setupTrackingAction, syncXeroAction, testPushAction } from "../actions";
 import { listIngestTokens } from "@/lib/services/personal";
 
@@ -29,7 +29,7 @@ function Status({ status }: { status: string | undefined }) {
   return <span className="badge">○ Not connected</span>;
 }
 
-export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ xero?: string; microsoft?: string }> }) {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ xero?: string; microsoft?: string; tab?: string }> }) {
   const sp = await searchParams;
   const { store, owner, supabase } = await dashboardVault("/settings");
   const ctx = { sb: supabase, ownerId: owner.id, actor: { source: "dashboard" as const } };
@@ -44,18 +44,22 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   ]);
   const [tokens, { data: hevy }] = await Promise.all([listIngestTokens(ctx), supabase.from("integration_connections").select("status, connected_at").eq("owner_id", owner.id).eq("provider", "hevy").maybeSingle()]);
   const site = env.siteUrl();
+  const TABS = [{ id: "connections", label: "Connections" }, { id: "personal", label: "Personal" }, { id: "devices", label: "Devices" }, { id: "preferences", label: "Preferences" }, { id: "data", label: "Data & security" }];
+  const tab = TABS.some((t) => t.id === sp.tab) ? sp.tab! : sp.xero || sp.microsoft ? "connections" : "connections";
   const connectorUrl = mcpResourceUrl();
   const num = (name: keyof typeof prefs, label: string, hint?: string) => (
     <label><span className="hud-label">{label}</span><input name={name} type="number" defaultValue={String(prefs[name])} className="input" />{hint && <span className="text-xs text-muted">{hint}</span>}</label>
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 fade-in">
       <div>
         <p className="hud-label">Settings</p>
-        <h1 className="mt-1 text-2xl font-semibold">Connections, preferences and security</h1>
+        <h1 className="mt-1.5 text-[1.7rem] font-semibold tracking-tight">Settings</h1>
       </div>
+      <Tabs active={tab} tabs={TABS.map((t) => ({ ...t, href: `/settings?tab=${t.id}` }))} />
 
+      {tab === "connections" && (<>
       <Panel title="Claude connector">
         <p className="text-sm text-muted">In Claude (web or desktop): Settings → Connectors → Add custom connector. Name it “Jarvis” and paste this URL. It then works in the Claude iPhone app too.</p>
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -108,8 +112,17 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         </Panel>
       </div>
 
+      <section id="notifications" className="scroll-mt-6">
+      <Panel title="Notifications">
+        <p className="mb-3 text-sm text-muted">Morning briefing at {String(prefs.briefingHour).padStart(2, "0")}:00, the Sunday weekly review, and deadline reminders {prefs.reminderLeadDays.join("/")} days before. On iPhone, open Jarvis from the Home Screen icon, then enable here.</p>
+        <PushToggle publicKey={env.vapid()?.publicKey ?? null} />
+        <ActionForm action={testPushAction} submit="Send a test notification" className="mt-3"><span /></ActionForm>
+      </Panel>
+      </section>
+      </>)}
+
+      {tab === "personal" && (
       <section id="personal" className="space-y-5 scroll-mt-6">
-        <h2 className="hud-label pt-2">Personal</h2>
         <div className="grid gap-5 xl:grid-cols-2">
           <Panel title="Home, goals and privacy">
             <ActionForm action={savePersonalPrefsAction} submit="Save">
@@ -130,17 +143,23 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             </ActionForm>
           </Panel>
         </div>
+      </section>
+      )}
+
+      {tab === "devices" && (
+      <section className="space-y-5">
         <Panel title="Device tokens (iPhone Shortcuts, Mac bridge)">
           <p className="mb-3 text-sm text-muted">Your iPhone and Mac send health data and messages to Jarvis with a device token. Create one per device, with only the permissions it needs. Revoke any time.</p>
           <dl className="mb-4 grid gap-1 text-xs sm:grid-cols-[9rem_1fr]">
             <dt className="text-muted">Health URL</dt><dd className="break-all font-mono">{site}/api/ingest/health</dd>
             <dt className="text-muted">Workouts URL</dt><dd className="break-all font-mono">{site}/api/ingest/workouts</dd>
             <dt className="text-muted">Messages URL</dt><dd className="break-all font-mono">{site}/api/ingest/messages?retention_days={prefs.messageRetentionDays}</dd>
+            <dt className="text-muted">Send to Jarvis URL</dt><dd className="break-all font-mono">{site}/api/ingest/capture</dd>
           </dl>
           <ActionForm action={createIngestTokenAction} submit="Create token">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <input name="name" placeholder="Device name, e.g. iPhone" required className="input sm:max-w-xs" />
-              {["health", "workouts", "messages"].map((sc) => <label key={sc} className="flex items-center gap-2 text-sm"><input type="checkbox" name="scopes" value={sc} defaultChecked={sc !== "messages"} className="h-5 w-5" /> {sc}</label>)}
+              {["health", "workouts", "capture", "messages"].map((sc) => <label key={sc} className="flex items-center gap-2 text-sm"><input type="checkbox" name="scopes" value={sc} defaultChecked className="h-5 w-5" /> {sc}</label>)}
             </div>
           </ActionForm>
           {tokens.length > 0 && (
@@ -155,13 +174,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           )}
         </Panel>
       </section>
+      )}
 
-      <Panel title="Notifications">
-        <p className="mb-3 text-sm text-muted">Morning briefing at {String(prefs.briefingHour).padStart(2, "0")}:00 and deadline reminders {prefs.reminderLeadDays.join("/")} days before. On iPhone, open Jarvis from the Home Screen icon, then enable here.</p>
-        <PushToggle publicKey={env.vapid()?.publicKey ?? null} />
-        <ActionForm action={testPushAction} submit="Send a test notification" className="mt-3"><span /></ActionForm>
-      </Panel>
-
+      {tab === "preferences" && (
       <Panel title="Preferences & thresholds">
         <ActionForm action={savePrefsAction} submit="Save preferences">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -185,7 +200,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <label className="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" name="deadlineTasks" defaultChecked={prefs.deadlineTasks} className="h-5 w-5" /> Add upcoming deadlines to Microsoft To Do ({Math.max(...prefs.reminderLeadDays)} days before)</label>
         </ActionForm>
       </Panel>
+      )}
 
+      {tab === "data" && (<>
       <div className="grid gap-5 xl:grid-cols-2">
         <Panel title="Your data">
           <p className="text-sm text-muted">Download everything Jarvis stores as JSON (UK GDPR export). Sensitive fields are included decrypted, so keep the file safe.</p>
@@ -210,6 +227,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </ul>
         )}
       </Panel>
+      </>)}
     </div>
   );
 }

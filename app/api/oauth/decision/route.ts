@@ -8,7 +8,7 @@ import { supabaseVaultStore } from "@/lib/vault/store";
 export const dynamic = "force-dynamic";
 
 function errorPage(message: string, status = 400) {
-  return new NextResponse(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Jarvis</title><body style="background:#05080d;color:#e6f1ff;font-family:system-ui;padding:24px"><p>${message}</p><p><a style="color:#38e1ff" href="/">Back to Jarvis</a></p>`, {
+  return new NextResponse(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Jarvis</title><body style="background:#070b11;color:#e6f1ff;font-family:system-ui;padding:24px"><p>${message}</p><p><a style="color:#38e1ff" href="/">Back to Jarvis</a></p>`, {
     status,
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });

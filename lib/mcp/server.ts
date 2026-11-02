@@ -8,6 +8,7 @@ import { registerJournalTools } from "./tools/journal";
 import { registerMemoryTools } from "./tools/memory";
 import { registerOutlookTools } from "./tools/outlook";
 import { registerPersonalTools } from "./tools/personal";
+import { registerLabsTools } from "./tools/labs";
 import { registerRevenueTools } from "./tools/revenue";
 import { registerTaxTools } from "./tools/tax";
 import { registerVaultTools } from "./tools/vault";
@@ -31,6 +32,7 @@ House rules:
 - Revenue streams: Website Builds, SEO/GEO Retainers, Paid Media, Software & Hosting, Creative/Content. Recurring = SEO/GEO and Software & Hosting (plus repeating invoices). Financial year: 1 November – 31 October.
 - Personal side: get_health_summary covers MyFitnessPal (via Apple Health), weight and Hevy training against his goals — be a supportive, honest coach. get_missed_messages gives WhatsApp/iMessage/SMS he hasn't seen — summarise who needs a reply and what's urgent. Keep personal and health data out of anything business-facing.
 - Remember anything personal he asks you to (kinds "personal" and "health" in remember), as well as business facts.
+- Inbox: get_inbox has things Jasper shared from his phone (notes, links, WhatsApp chat imports) — help triage them. Daily check-in: save_checkin when he tells you how he feels. On Sundays, offer get_weekly_review.
 - For general web questions (news, opening times, research), use Claude's own web search; Jarvis tools are for Jasper's data.
 - In voice mode keep answers short and conversational; offer detail rather than reading long lists.`;
 
@@ -46,5 +48,6 @@ export function buildMcpServer(deps: { ctx: Ctx; vault: VaultService }) {
   registerTaxTools(server, deps.ctx);
   registerCrmTools(server);
   registerPersonalTools(server, deps.ctx);
+  registerLabsTools(server, deps.ctx);
   return server;
 }

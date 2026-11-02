@@ -4,14 +4,14 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Jarvis · Qevero",
     short_name: "Jarvis",
-    description: "Qevero's business assistant dashboard",
+    description: "Your personal assistant for Qevero and life",
     id: "/",
     start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#05080d",
-    theme_color: "#05080d",
+    background_color: "#070b11",
+    theme_color: "#070b11",
     lang: "en-GB",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },

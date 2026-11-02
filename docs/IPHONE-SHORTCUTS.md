@@ -1,6 +1,6 @@
 # iPhone Shortcuts for Jarvis
 
-All of these use Apple's free **Shortcuts** app. Replace `jv_…` with a **device token** from Jarvis → Settings → Personal → Device tokens. Use one token for your iPhone with the **health** and **workouts** permissions, and a separate one if you forward messages.
+All of these use Apple's free **Shortcuts** app. First create one **device token** for your iPhone: Jarvis → Settings → **Devices** → name it `iPhone`, leave all four permissions ticked (health, workouts, capture, messages) → **Create token**, and copy it somewhere safe such as Notes, for setting up. Replace `jv_…` below with it.
 
 ## 1. "Jarvis": talk to Jarvis (Siri and the Action Button)
 
@@ -53,3 +53,28 @@ MyFitnessPal has no public API, but it writes to **Apple Health**, and so do you
 ## 4. "Jarvis Dashboard"
 
 Open Jarvis in Safari → Share → **Add to Home Screen**. Notifications (morning briefing, deadlines) need the Home Screen app: open it, then Settings → Enable notifications.
+
+## 5. "Send to Jarvis" (share sheet)
+
+Share **anything** to Jarvis from any app: a link from Safari, a note, text you've selected, or a whole **WhatsApp chat**. It lands in your Jarvis **Inbox**. WhatsApp chats become messages Jarvis can summarise ("what did I miss in 5-a-side?").
+
+1. Shortcuts → **+** → name it **Send to Jarvis**.
+2. Tap the **ⓘ** (details) → turn on **Show in Share Sheet**. Under **Receives**, allow **Text, URLs, Files, Rich Text, Safari web pages**.
+3. Add **Get Contents of URL**:
+   - URL: `https://jarvis-qevero.netlify.app/api/ingest/capture`
+   - Method: **POST**
+   - Headers: `Authorization` = `Bearer jv_…`
+   - Request Body: **Form**, with one field: key `content`, type **File**, value **Shortcut Input**.
+4. Add **Get Dictionary Value**: key `message` from **Contents of URL**.
+5. Add **Show Notification**: **Dictionary Value**.
+
+**Using it:**
+- **A web page or link:** Share → **Send to Jarvis**.
+- **A WhatsApp chat:** open the chat → tap its name → **Export Chat** → **Without Media** → **Send to Jarvis**. Jarvis keeps the last 7 days of other people's messages (not yours) and tells you how many it found. Then ask Claude: *"Summarise what I missed in that chat."*
+- **Selected text in any app:** Share → **Send to Jarvis**.
+
+> Busy group chat? Export it once a day (or whenever you've fallen behind), share it to Jarvis, and ask for a catch-up. Repeats are ignored, so sharing the same chat again only adds new messages.
+
+## 6. iMessage forwarding (automatic, chosen people)
+
+See [`MESSAGES.md`](MESSAGES.md) → option B. iOS lets an automation run whenever a message arrives from people you pick.

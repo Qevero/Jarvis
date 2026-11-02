@@ -30,7 +30,7 @@ export default async function HealthPage() {
       </PageHeader>
 
       {!hasData && (
-        <Empty action={<Link href="/settings#personal" className="btn btn-primary btn-sm">Set up devices</Link>}>
+        <Empty action={<Link href="/settings?tab=devices" className="btn btn-primary btn-sm">Set up devices</Link>}>
           No health data yet. Set up the “Jarvis Health Sync” iPhone Shortcut (sends MyFitnessPal calories and your weight from Apple Health each evening) and connect Hevy in Settings → Personal. Step-by-step: docs/IPHONE-SHORTCUTS.md.
         </Empty>
       )}
@@ -67,7 +67,7 @@ export default async function HealthPage() {
         </Panel>
       </div>
 
-      <Panel title="Log manually">
+      <section id="log" className="scroll-mt-6"><Panel title="Log manually">
         <ActionForm action={logHealthAction} submit="Log" resetOnSuccess>
           <div className="grid gap-2 sm:grid-cols-4">
             <input name="day" placeholder="Date (today)" className="input" />
@@ -76,7 +76,7 @@ export default async function HealthPage() {
             <input name="protein" placeholder="Protein g" inputMode="numeric" className="input" />
           </div>
         </ActionForm>
-      </Panel>
+      </Panel></section>
     </div>
   );
 }

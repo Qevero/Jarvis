@@ -29,6 +29,11 @@ Jarvis is two things:
 | **Health & training** | Calories and protein vs targets (MyFitnessPal via Apple Health), weight trend, sessions and volume, best lifts and PRs (Hevy) | "How's my protein this week?" / "How's my bench progressing?" |
 | **Missed messages** | Unread WhatsApp, iMessage and SMS, forwarded from your own Mac/iPhone, encrypted, auto-deleted | "What have I missed?" |
 | **Weather** | In the briefing (home location) | "Will it rain tomorrow?" |
+| **Inbox** (Labs) | Everything you share with "Send to Jarvis" from your iPhone: links, notes, WhatsApp chats | "Go through my Jarvis inbox" |
+| **Daily check-in** (Labs) | One-tap mood, energy, sleep and stress, with simple patterns ("energy is higher after good sleep") | "I'm knackered, slept badly" |
+| **Weekly review** (Labs) | Sunday 18:00 notification; business and life wins, things to watch, reflection prompts → journal | "Give me my weekly review" |
+| **Search** | ⌘K / Ctrl+K or the Search tab: jump anywhere, find clients, invoices, journal, memories | — |
+| **Setup checklist** | `/setup` ticks itself off as things connect | — |
 
 **What Jarvis never does:** send an email, send a calendar invitation, approve or send an invoice, or file anything with HMRC or Companies House. Emails go to **Outlook Drafts**, and the Microsoft permission doesn't even include sending. Invoices, quotes and POs are **Xero drafts**. Calendar events have **no attendees**. Every write is in the **audit log**.
 
@@ -95,6 +100,7 @@ You'll need free accounts for **Supabase**, **Netlify**, the **Xero Developer po
    1. `20261101000000_phase1_foundations.sql`
    2. `20261102000000_jarvis_modules.sql`
    3. `20261103000000_personal.sql`
+   4. `20261104000000_labs.sql`
 3. **Create your login** in **Authentication → Users → Add user → Create new user**:
    - Use your email; it must match `JARVIS_OWNER_EMAIL`.
    - Choose a strong password.

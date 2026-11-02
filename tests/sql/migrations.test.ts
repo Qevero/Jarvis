@@ -107,3 +107,19 @@ describe("personal ingest", () => {
     await h.as(JASPER, "insert into public.integration_connections (provider) values ('hevy')");
   });
 });
+
+describe("labs: captures and check-ins", () => {
+  const TOKEN = "c".repeat(48);
+  it("captures via a capture-scoped token only", async () => {
+    await h.as(JASPER, "insert into public.ingest_tokens (name, token_hash, scopes) values ('iPhone share', encode(sha256(convert_to($1, 'UTF8')), 'hex'), array['capture','messages'])", [TOKEN]);
+    const [r] = await h.as<{ id: string }>(null, "select public.jarvis_capture($1, 'link', 'Article', 'https://example.com', null) as id", [TOKEN]);
+    expect(r.id).toMatch(/[0-9a-f-]{36}/);
+    expect(await h.as(JASPER, "select kind, title, status from public.captures")).toEqual([{ kind: "link", title: "Article", status: "new" }]);
+    expect(await h.as(MALLORY, "select * from public.captures")).toEqual([]);
+    await expect(h.as(null, "select public.jarvis_capture($1, 'note', 'x', null, null)", ["t".repeat(48)])).rejects.toThrow(/Invalid or revoked/);
+  });
+  it("stores one check-in per day with 1–5 scores", async () => {
+    await h.as(JASPER, "insert into public.checkins (day, mood, energy, sleep) values ('2026-11-03', 4, 3, 5)");
+    await expect(h.as(JASPER, "insert into public.checkins (day, mood) values ('2026-11-04', 9)")).rejects.toThrow();
+  });
+});

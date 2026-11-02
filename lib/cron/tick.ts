@@ -9,6 +9,7 @@ import { syncXero, lastSync } from "@/lib/xero/sync";
 import { gatherBriefing } from "@/lib/services/briefing";
 import { upcomingDeadlines } from "@/lib/services/tax";
 import { syncHevy } from "@/lib/hevy/client";
+import { gatherWeeklyReview } from "@/lib/services/labs";
 
 /**
  * Hourly scheduled tick (Netlify scheduled function → /api/cron/tick):
@@ -72,6 +73,19 @@ export async function runTick(opts: { force?: boolean } = {}) {
     }
   } catch (e) {
     report.briefing = { error: e instanceof Error ? e.message : "failed" };
+  }
+
+  // 3b. Sunday 18:00 UK: week in review.
+  try {
+    const weekday = new Intl.DateTimeFormat("en-GB", { weekday: "short", timeZone: "Europe/London" }).format(new Date());
+    if ((weekday === "Sun" && hour === 18) || opts.force) {
+      report.weekly = await once(ctx, `weekly:${today}`, "push", async () => {
+        const r = await gatherWeeklyReview(ctx);
+        await sendPush(ctx, { title: "Your week in review", body: `${r.headline} ${r.watch[0] ? `Watch: ${r.watch[0]}.` : ""}`.trim().slice(0, 220), url: "/review", tag: "weekly" });
+      });
+    }
+  } catch (e) {
+    report.weekly = { error: e instanceof Error ? e.message : "failed" };
   }
 
   // 4. Deadline reminders (from 08:00 UK).

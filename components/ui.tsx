@@ -2,11 +2,11 @@ import Link from "next/link";
 
 export function PageHeader({ label, title, children, sub }: { label: string; title: string; sub?: React.ReactNode; children?: React.ReactNode }) {
   return (
-    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p className="hud-label">{label}</p>
-        <h1 className="mt-1 text-2xl font-semibold">{title}</h1>
-        {sub && <p className="mt-1 text-sm text-muted">{sub}</p>}
+        <h1 className="mt-1.5 text-[1.7rem] font-semibold leading-tight tracking-tight">{title}</h1>
+        {sub && <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-muted">{sub}</p>}
       </div>
       {children && <div className="flex flex-wrap gap-2">{children}</div>}
     </div>
@@ -32,7 +32,7 @@ export function Stat({ label, value, sub, tone }: { label: string; value: string
   return (
     <div className="panel p-4">
       <p className="hud-label">{label}</p>
-      <p className={`mt-1 font-mono text-2xl font-semibold tabular-nums ${toneClass}`}>{value}</p>
+      <p className={`num mt-1.5 text-2xl font-semibold ${toneClass}`}>{value}</p>
       {sub && <p className="mt-0.5 text-xs text-muted">{sub}</p>}
     </div>
   );
@@ -93,4 +93,44 @@ export function Tabs({ tabs, active }: { tabs: { id: string; label: string; href
 
 export function UnverifiedBadge({ verified }: { verified: boolean }) {
   return verified ? <span className="badge border-ok/50 text-ok">✓ Verified</span> : <span className="badge border-warn/60 text-warn">! Unverified</span>;
+}
+
+/** Big tappable tile with a headline number (hub pages). */
+export function Tile({ href, label, value, sub, icon, tone, progress }: { href: string; label: string; value: string; sub?: string; icon?: string; tone?: "ok" | "warn" | "danger"; progress?: number | null }) {
+  const toneClass = tone === "danger" ? "text-danger" : tone === "warn" ? "text-warn" : tone === "ok" ? "text-ok" : "text-fg";
+  return (
+    <Link href={href} className="tile fade-in">
+      <span className="flex items-center justify-between">
+        <span className="hud-label">{label}</span>
+        {icon && <svg viewBox="0 0 24 24" className="h-5 w-5 text-accent/80" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={icon} /></svg>}
+      </span>
+      <span className={`num mt-auto text-[1.6rem] font-semibold leading-none ${toneClass}`}>{value}</span>
+      {progress !== undefined && progress !== null && <span className="bar mt-1" role="progressbar" aria-valuenow={Math.round(progress * 100)} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${Math.min(100, Math.max(2, progress * 100))}%` }} /></span>}
+      {sub && <span className="text-xs leading-snug text-muted">{sub}</span>}
+    </Link>
+  );
+}
+
+/** Labelled progress towards a target. */
+export function Progress({ label, value, target, unit = "", invert = false }: { label: string; value: number | null; target: number | null; unit?: string; invert?: boolean }) {
+  const p = value !== null && target ? value / target : null;
+  const good = p === null ? false : invert ? p <= 1.05 : p >= 0.95;
+  return (
+    <div>
+      <div className="flex items-baseline justify-between text-sm">
+        <span className="text-muted">{label}</span>
+        <span className="num">{value === null ? "—" : `${Math.round(value).toLocaleString("en-GB")}${unit}`}{target ? <span className="text-muted"> / {target.toLocaleString("en-GB")}{unit}</span> : null}</span>
+      </div>
+      <div className="bar mt-1.5"><span style={{ width: `${p === null ? 0 : Math.min(100, p * 100)}%`, background: p === null ? undefined : good ? "var(--ok)" : "var(--accent)" }} /></div>
+    </div>
+  );
+}
+
+export function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
+  return (
+    <div className="mb-3 mt-8 flex items-center justify-between first:mt-0">
+      <h2 className="text-[0.95rem] font-semibold tracking-tight">{children}</h2>
+      {action}
+    </div>
+  );
 }

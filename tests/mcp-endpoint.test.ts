@@ -78,7 +78,7 @@ describe("MCP endpoint", () => {
 
     const list = await (await rpc("tools/list")).json();
     const names: string[] = list.result.tools.map((t: { name: string }) => t.name);
-    for (const n of ["get_company_profile", "get_document", "list_documents", "update_company_field", "save_journal_entry", "remember", "get_revenue_summary", "get_attention_flags", "create_invoice_draft", "create_purchase_order_draft", "create_proposal", "add_task", "get_calendar", "create_email_draft", "get_upcoming_deadlines", "get_vat_position", "crm_overview", "get_morning_briefing", "get_weather", "get_health_summary", "get_lift_progress", "get_missed_messages", "log_health"]) {
+    for (const n of ["get_company_profile", "get_document", "list_documents", "update_company_field", "save_journal_entry", "remember", "get_revenue_summary", "get_attention_flags", "create_invoice_draft", "create_purchase_order_draft", "create_proposal", "add_task", "get_calendar", "create_email_draft", "get_upcoming_deadlines", "get_vat_position", "crm_overview", "get_morning_briefing", "get_weather", "get_health_summary", "get_lift_progress", "get_missed_messages", "log_health", "get_inbox", "save_checkin", "get_weekly_review"]) {
       expect(names).toContain(n);
     }
     // Jarvis never sends: no tool may send email.

@@ -134,6 +134,15 @@ Jarvis is Jasper's personal assistant as well as the business one.
 
 MCP tools: `get_weather`, `get_health_summary`, `get_weight_trend`, `get_workouts`, `get_lift_progress`, `log_health`, `sync_hevy`, `get_missed_messages`, `mark_messages_seen`
 
+### 4.9 Labs and UI (added 02/11/2026)
+
+Jasper has an iPhone and a Windows (HP) laptop — no Mac yet (MacBook planned). Phone-first:
+- "Send to Jarvis" share sheet → `/api/ingest/capture` (form/JSON/raw zip): WhatsApp chat exports (official Export Chat) → messages; links/notes → `captures` (Inbox). Mac bridge stays for later; a Windows bridge isn't feasible (WhatsApp for Windows encrypts its DB).
+- Daily check-in (`checkins`, 1–5 mood/energy/sleep/stress) with deterministic insights; weekly review (Sunday 18:00 push).
+- Design: calm dark system in `app/globals.css` (tokens, `.tile`, `.chip`, `.bar`, `.num`), navigation grouped Today / Business / Life / Inbox (+ ⌘K command palette and `/api/search`), hub pages `/business` and `/life`, `/setup` live checklist, settings split into tabs, loading/error states. Keep touch targets ≥44px and one accent colour.
+
+MCP tools: `get_inbox`, `mark_capture_done`, `save_checkin`, `get_checkins`, `get_weekly_review`
+
 ## 5. Security and data handling
 
 - Single user (Jasper). Supabase Auth with MFA on the dashboard. RLS on every table.

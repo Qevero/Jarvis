@@ -495,3 +495,82 @@ export async function markMessagesSeenAction(fd: FormData) {
   revalidatePath("/messages");
   revalidatePath("/");
 }
+
+// ─── Labs: Inbox, check-in, weekly review ───────────────────────────────────
+export async function captureNoteAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const ctx = await dashboardCtx("/inbox");
+    const text = s(fd, "text");
+    if (!text) throw new UserError("Type something to capture.");
+    const { classifyCapture } = await import("@/lib/capture/classify");
+    const { encrypt } = await import("@/lib/crypto");
+    const { env } = await import("@/lib/env");
+    const c = classifyCapture(text);
+    const { error } = await ctx.sb.from("captures").insert({ owner_id: ctx.ownerId, kind: c.kind === "whatsapp" ? "note" : c.kind, title: c.title, url: c.url, body_enc: encrypt(text.slice(0, 20_000), env.vaultKey()) });
+    if (error) throw new Error(error.message);
+    await audit(ctx, "capture.create", c.title);
+    revalidatePath("/inbox");
+    return { ok: true, message: "Captured" };
+  } catch (e) {
+    return err(e);
+  }
+}
+
+export async function captureStatusAction(fd: FormData) {
+  const ctx = await dashboardCtx("/inbox");
+  const { setCaptureStatus } = await import("@/lib/services/labs");
+  await setCaptureStatus(ctx, s(fd, "id"), s(fd, "status") === "new" ? "new" : "done");
+  revalidatePath("/inbox");
+}
+
+export async function deleteCaptureAction(fd: FormData) {
+  const ctx = await dashboardCtx("/inbox");
+  const { deleteCapture } = await import("@/lib/services/labs");
+  await deleteCapture(ctx, s(fd, "id"));
+  revalidatePath("/inbox");
+}
+
+export async function captureToJournalAction(fd: FormData) {
+  const ctx = await dashboardCtx("/inbox");
+  const { listCaptures, setCaptureStatus } = await import("@/lib/services/labs");
+  const c = (await listCaptures(ctx, { status: "all", limit: 300 })).find((x) => x.id === s(fd, "id"));
+  if (!c) return;
+  await saveJournalEntry(ctx, { title: c.title ?? "From Inbox", raw_notes: [c.text, c.url].filter(Boolean).join("\n\n"), source: "dashboard" });
+  await setCaptureStatus(ctx, c.id, "done");
+  revalidatePath("/inbox");
+  revalidatePath("/journal");
+}
+
+export async function saveCheckinAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const ctx = await dashboardCtx("/life");
+    const { saveCheckin } = await import("@/lib/services/labs");
+    await saveCheckin(ctx, { mood: fd.get("mood"), energy: fd.get("energy"), sleep: fd.get("sleep"), stress: fd.get("stress"), note: s(fd, "note") || null });
+    revalidatePath("/life");
+    revalidatePath("/");
+    return { ok: true, message: "Checked in ✓" };
+  } catch (e) {
+    return err(e);
+  }
+}
+
+export async function saveReviewToJournalAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const ctx = await dashboardCtx("/review");
+    const { gatherWeeklyReview } = await import("@/lib/services/labs");
+    const r = await gatherWeeklyReview(ctx);
+    const reflections = [s(fd, "r1"), s(fd, "r2"), s(fd, "r3")];
+    const e = await saveJournalEntry(ctx, {
+      title: `Week in review: ${r.input.weekStart.split("-").reverse().join("/")}`,
+      summary: r.spoken,
+      raw_notes: [...r.sections.map((x) => `${x.title}\n${x.lines.join("\n")}`), ...r.prompts.map((p, i) => (reflections[i] ? `${p}\n${reflections[i]}` : "")).filter(Boolean)].join("\n\n"),
+      themes: ["weekly review"],
+      ideas: reflections.filter(Boolean),
+      source: "dashboard",
+    });
+    revalidatePath("/journal");
+    return { ok: true, message: "Saved to your journal", href: `/journal/${e.id}` };
+  } catch (e) {
+    return err(e);
+  }
+}

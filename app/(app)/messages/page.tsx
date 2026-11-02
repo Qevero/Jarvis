@@ -17,7 +17,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="space-y-5">
-      <PageHeader label="Personal" title="Missed messages" sub="WhatsApp, iMessage and SMS forwarded from your own Mac or iPhone. Ask Jarvis: “summarise what I've missed”.">
+      <PageHeader label="Life" title="Missed messages" sub="WhatsApp chats you share to Jarvis and iMessages forwarded from your iPhone. Ask Jarvis: “summarise what I've missed”.">
         {r.total > 0 && show === "unseen" && (
           <form action={markMessagesSeenAction}><button className="btn btn-ghost btn-sm">Mark all seen</button></form>
         )}
@@ -25,8 +25,8 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
       <Tabs active={show} tabs={[{ id: "unseen", label: "Unseen", href: "/messages?show=unseen" }, { id: "all", label: "Last 14 days", href: "/messages?show=all" }]} />
 
       {!tokens?.length ? (
-        <Empty action={<Link href="/settings#personal" className="btn btn-primary btn-sm">Set up message forwarding</Link>}>
-          Nothing is forwarding messages yet. Use the Mac bridge (WhatsApp + iMessage/SMS) or the iPhone automation (iMessage). See docs/MESSAGES.md.
+        <Empty action={<Link href="/settings?tab=devices" className="btn btn-primary btn-sm">Set up message forwarding</Link>}>
+          Nothing here yet. From your iPhone: share a WhatsApp chat with “Send to Jarvis” (WhatsApp → chat → Export chat), and set up the iMessage automation for the people who matter. When you get a Mac, the bridge makes this fully automatic.
         </Empty>
       ) : (
         <p className="text-xs text-muted">Forwarding from: {tokens.map((t) => `${t.name}${t.last_used_at ? ` (last ${formatUkDateTime(t.last_used_at)})` : " (not used yet)"}`).join(", ")}. Messages are encrypted and deleted after the retention period.</p>

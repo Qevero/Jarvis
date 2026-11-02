@@ -11,7 +11,11 @@ Jarvis is your personal assistant for both sides of life: **Qevero** (money, cli
 | **Jarvis app** (`https://jarvis-qevero.netlify.app`) | Home Screen icon on iPhone; browser on desktop | Seeing everything at a glance: briefing, charts, deadlines, messages, health. Also notifications. |
 | **Notifications** | Automatic | 07:00 briefing, deadline reminders |
 
-Behind the scenes, your **iPhone** sends MyFitnessPal and weight data each night, your **Mac** forwards unread messages every 5 minutes, and Jarvis syncs **Xero**, **Outlook/To Do**, **Hevy** and your **CRM** on its own.
+Behind the scenes, your **iPhone** sends MyFitnessPal and weight data each night, and "**Send to Jarvis**" lets you share links, notes and WhatsApp chats from any app. Jarvis syncs **Xero**, **Outlook/To Do**, **Hevy** and your **CRM** on its own. (When you get a MacBook, the Mac bridge makes missed messages fully automatic.)
+
+**Your HP laptop (Windows):** use the dashboard in your browser (`https://jarvis-qevero.netlify.app`; press **Ctrl+K** to search or jump anywhere), and install the **Claude desktop app for Windows**, where the Jarvis connector works just like on iPhone. The optional "Hey Jarvis" wake word also runs on Windows (`desktop/wake-word`).
+
+**In the app, Setup (`/setup`) shows a live checklist that ticks itself off as things connect.**
 
 ## What you need to do, in order
 
@@ -29,7 +33,7 @@ Steps 1–4 get Jarvis running (about 45 minutes). Everything after that adds a 
 | 8 | **Notifications**: VAPID keys, then enable on your iPhone | 5 min | README → Setup → 8 |
 | 9 | **Health**: allow MyFitnessPal → Apple Health; create the "Jarvis Health Sync" automation; set goals in Settings → Personal | 15 min | `docs/IPHONE-SHORTCUTS.md` |
 | 10 | **Hevy**: paste your API key (needs Hevy Pro), or use Apple Health | 2 min | `docs/IPHONE-SHORTCUTS.md` §3 |
-| 11 | **Messages**: Mac bridge for WhatsApp, iMessage and SMS (or the iPhone automation for iMessage) | 10 min | `docs/MESSAGES.md` |
+| 11 | **Send to Jarvis** share sheet (links, notes, WhatsApp chats) and the **iMessage** automation | 10 min | `docs/IPHONE-SHORTCUTS.md` §5–6, `docs/MESSAGES.md` |
 | 12 | **Memory**: import your Claude chat history, then ask Claude to digest it | 10 min | README → Setup → 10 |
 | 13 | **Siri, Action Button, Home Screen** | 5 min | `docs/IPHONE-SHORTCUTS.md` §1, §4 |
 | 14 | Ask your accountant to confirm the tax rules, then mark them verified on the Tax page | — | Tax page |
@@ -51,6 +55,9 @@ Steps 1–4 get Jarvis running (about 45 minutes). Everything after that adds a 
 - "Invoice World of Beds £750 for November's SEO retainer." (preview → "yes, create it")
 - "Draft an SEO proposal for …" / "Add a task to chase … on Friday" / "What's on tomorrow?"
 - "Save this to my journal: …"
+- "Go through my Jarvis inbox." / "What did I miss in 5-a-side?"
+- "I'm shattered, slept badly, stress is high." (records today's check-in)
+- "Give me my weekly review." (Sunday evenings)
 
 ## Want something else connected?
 
