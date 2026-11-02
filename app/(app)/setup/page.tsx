@@ -78,7 +78,9 @@ export default async function SetupPage() {
 
   return (
     <div className="space-y-6 fade-in">
-      <PageHeader label="Setup" title="Get Jarvis fully running" sub="Each step unlocks something. Do them in any order — this page ticks itself off as things connect." />
+      <PageHeader label="Setup" title="Get Jarvis fully running" sub="Each step unlocks something. Do them in any order — this page ticks itself off as things connect.">
+        <a href={`${DOCS}/docs/SETUP-EASY.md`} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm">Step-by-step guide</a>
+      </PageHeader>
       <div className="panel p-5">
         <div className="flex items-baseline justify-between"><span className="text-sm text-muted">Progress</span><span className="num text-lg font-semibold">{done}/{all.length}</span></div>
         <div className="bar mt-2"><span style={{ width: `${(done / all.length) * 100}%` }} /></div>

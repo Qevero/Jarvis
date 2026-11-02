@@ -1,5 +1,7 @@
 # Getting started with Jarvis
 
+> **Not technical? Use [the easy setup guide](SETUP-EASY.md)** instead. It explains every click in plain English.
+
 Jarvis is your personal assistant for both sides of life: **Qevero** (money, clients, invoices, tax, CRM, tasks) and **you** (health, training, weather, missed messages, and anything you want it to remember).
 
 ## How you'll use it
@@ -23,7 +25,7 @@ Steps 1–4 get Jarvis running (about 45 minutes). Everything after that adds a 
 
 | # | Step | Time | Guide |
 |---|---|---|---|
-| 1 | Create a **Supabase** project (London) and run the 3 migration files | 15 min | README → Setup → 1 |
+| 1 | Create a **Supabase** project (London) and run the 4 migration files | 15 min | README → Setup → 1 |
 | 2 | Link the **Netlify** project `jarvis-qevero` to GitHub `Qevero/Jarvis`; add the environment variables; deploy | 10 min | README → Setup → 2 |
 | 3 | Open `https://jarvis-qevero.netlify.app`, sign in, set up MFA, check the **Vault** | 5 min | README → Setup → 3 |
 | 4 | Add Jarvis as a **custom connector** in Claude and approve it; ask "What's our VAT number?" | 5 min | README → Setup → 4 |

@@ -1,6 +1,6 @@
 # Jarvis: Jasper's personal assistant for Qevero and life
 
-> **New here? Start with [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md)**: how you'll access Jarvis, and the setup checklist in order.
+> **Setting up? Follow [`docs/SETUP-EASY.md`](docs/SETUP-EASY.md)**, a plain-English, click-by-click guide. For an overview of how you'll use Jarvis, see [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md).
 
 Jarvis is two things:
 
@@ -125,6 +125,8 @@ Your code is on GitHub at `Qevero/Jarvis`.
    - `JARVIS_OWNER_EMAIL`
    - `VAULT_ENCRYPTION_KEY`
    - `CRON_SECRET`
+
+   No terminal? Open `https://<your-site>/setup-keys.html` after the first deploy. It generates `VAULT_ENCRYPTION_KEY`, `CRON_SECRET`, the VAPID pair and the CRM token in your browser.
 3. Trigger a deploy. Return to Supabase step 1.9 and set the Site URL to `https://jarvis-qevero.netlify.app`.
 4. The hourly `cron-tick` function appears under **Logs → Functions**.
 

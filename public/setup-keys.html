@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#070b11" />
+    <meta name="robots" content="noindex" />
+    <title>Jarvis Setup Keys</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #070b11; color: #e6f1ff; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.5; padding: 24px 16px 64px; }
+      main { max-width: 720px; margin: 0 auto; }
+      h1 { font-size: 1.6rem; margin: 0 0 6px; }
+      .lead { color: #9fb3c8; margin: 0 0 20px; }
+      .warn { border: 1px solid #c98500; background: rgba(201,133,0,.08); border-radius: 14px; padding: 12px 14px; font-size: .95rem; margin-bottom: 20px; }
+      .card { background: #0d141c; border: 1px solid #1c2733; border-radius: 16px; padding: 16px; margin-bottom: 14px; }
+      .name { font-family: ui-monospace, Consolas, monospace; font-weight: 600; color: #4fd6f5; word-break: break-all; }
+      .why { color: #9fb3c8; font-size: .9rem; margin: 4px 0 10px; }
+      .row { display: flex; gap: 8px; align-items: stretch; }
+      textarea { flex: 1; min-width: 0; background: #070b11; color: #e6f1ff; border: 1px solid #1c2733; border-radius: 10px; padding: 10px; font-family: ui-monospace, Consolas, monospace; font-size: .85rem; resize: vertical; }
+      button { min-height: 46px; min-width: 76px; padding: 0 16px; border-radius: 10px; border: 1px solid #4fd6f5; background: #4fd6f5; color: #031018; font-weight: 600; font-size: 15px; cursor: pointer; }
+      button.ghost { background: transparent; color: #4fd6f5; }
+      h2 { font-size: 1.05rem; margin: 28px 0 10px; }
+      ol { padding-left: 20px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Jarvis setup keys</h1>
+      <p class="lead">This page makes the secret keys Jarvis needs. They're created in <strong>your browser</strong> and never sent anywhere.</p>
+      <div class="warn"><strong>Before you close this page:</strong> copy each key into Netlify (and into your password manager). If you reload, you'll get brand new keys and the old ones are gone. That's fine before you've saved them, but once Jarvis is running don't change <span class="name">VAULT_ENCRYPTION_KEY</span>.</div>
+
+      <h2>For Netlify (environment variables)</h2>
+      <div id="keys"></div>
+
+      <h2>For the Qevero CRM (step 7 of the guide)</h2>
+      <div class="card">
+        <div class="name">CRM_CONNECTOR_TOKEN</div>
+        <p class="why">Put this in Netlify too.</p>
+        <div class="row"><textarea id="crm" rows="2" readonly></textarea><button data-copy="crm">Copy</button></div>
+      </div>
+      <div class="card">
+        <div class="name">SQL to run in the CRM's Supabase</div>
+        <p class="why">In the <strong>CRM</strong> Supabase project → SQL Editor → New query, paste this and press Run (after you've run <span class="name">jarvis_connector.sql</span>).</p>
+        <div class="row"><textarea id="crmsql" rows="5" readonly></textarea><button data-copy="crmsql">Copy</button></div>
+      </div>
+
+      <p><button class="ghost" id="again">Make new keys</button></p>
+    </main>
+    <script>
+      const KEYS = [
+        ["VAULT_ENCRYPTION_KEY", "Locks away your sensitive data (UTR, bank details, Xero and Outlook logins). Also save it in your password manager. If it's lost, that data can't be unlocked.", "vault"],
+        ["CRON_SECRET", "A password for Jarvis's hourly background job.", "cron"],
+        ["NEXT_PUBLIC_VAPID_PUBLIC_KEY", "Lets Jarvis send notifications to your iPhone (public half).", "vpub"],
+        ["VAPID_PRIVATE_KEY", "Lets Jarvis send notifications to your iPhone (private half).", "vpriv"],
+      ];
+      const b64 = (bytes) => btoa(String.fromCharCode(...bytes));
+      const b64url = (bytes) => b64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      const hex = (bytes) => [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+      const rand = (n) => crypto.getRandomValues(new Uint8Array(n));
+
+      async function make() {
+        const pair = await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+        const pub = new Uint8Array(await crypto.subtle.exportKey("raw", pair.publicKey));
+        const jwk = await crypto.subtle.exportKey("jwk", pair.privateKey);
+        const values = { vault: b64(rand(32)), cron: hex(rand(32)), vpub: b64url(pub), vpriv: jwk.d };
+        const box = document.getElementById("keys");
+        box.innerHTML = "";
+        for (const [name, why, id] of KEYS) {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `<div class="name">${name}</div><p class="why">${why}</p><div class="row"><textarea id="${id}" rows="2" readonly></textarea><button data-copy="${id}">Copy</button></div>`;
+          box.appendChild(card);
+          card.querySelector("textarea").value = values[id];
+        }
+        const token = hex(rand(32));
+        document.getElementById("crm").value = token;
+        document.getElementById("crmsql").value =
+          "insert into jarvis.connector (org_id, token_hash)\nvalues ((select id from public.organisations where name ilike 'Qevero%' limit 1),\n        encode(sha256(convert_to('" + token + "', 'UTF8')), 'hex'));";
+      }
+
+      document.addEventListener("click", async (e) => {
+        const id = e.target.dataset && e.target.dataset.copy;
+        if (!id) return;
+        const el = document.getElementById(id);
+        try { await navigator.clipboard.writeText(el.value); } catch { el.select(); document.execCommand("copy"); }
+        e.target.textContent = "Copied ✓";
+        setTimeout(() => (e.target.textContent = "Copy"), 1500);
+      });
+      document.getElementById("again").addEventListener("click", () => { if (confirm("Make new keys? Any you haven't saved will be lost.")) make(); });
+      make();
+    </script>
+  </body>
+</html>
