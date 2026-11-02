@@ -107,13 +107,13 @@ You'll need free accounts for **Supabase**, **Netlify**, the **Xero Developer po
 
 Your code is on GitHub at `Qevero/Jarvis`.
 
-1. Netlify → **Add new project → Import an existing project → GitHub → Qevero/Jarvis**. The build settings come from `netlify.toml`.
+1. An empty Netlify project, **`jarvis-qevero`**, has already been created (https://jarvis-qevero.netlify.app). Open it in Netlify → **Project configuration → Build & deploy → Link repository → GitHub → Qevero/Jarvis**, branch `main`. The build settings come from `netlify.toml`.
 2. Before the first deploy, add the [environment variables](#environment-variables) under **Site configuration → Environment variables** (scope: Builds + Functions). At minimum you need:
    - the Supabase variables
    - `JARVIS_OWNER_EMAIL`
    - `VAULT_ENCRYPTION_KEY`
    - `CRON_SECRET`
-3. Deploy, then rename the site (e.g. `jarvis-qevero`). Return to Supabase step 1.9 to set the Site URL.
+3. Trigger a deploy. Return to Supabase step 1.9 and set the Site URL to `https://jarvis-qevero.netlify.app`.
 4. The hourly `cron-tick` function appears under **Logs → Functions**.
 
 ### 3. First sign-in and MFA
