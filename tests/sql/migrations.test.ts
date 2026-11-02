@@ -67,3 +67,43 @@ describe("migrations", () => {
     await h.as(MALLORY, "insert into public.proposals (number, title, client_name) values ('QP-0001', 'Other', 'Y')");
   });
 });
+
+describe("personal ingest", () => {
+  const TOKEN = "t".repeat(48);
+  beforeAll(async () => {
+    await h.as(JASPER, "insert into public.ingest_tokens (name, token_hash, scopes) values ('iPhone', encode(sha256(convert_to($1, 'UTF8')), 'hex'), array['health','messages'])", [TOKEN]);
+  });
+
+  it("merges health days from a device token (anon key) without overwriting with blanks", async () => {
+    const r1 = await h.as<{ r: { accepted: number } }>(null, "select public.jarvis_ingest($1, 'health', $2) as r", [TOKEN, JSON.stringify([{ day: "2026-11-02", energy_kcal: 2100, protein_g: 150 }])]);
+    expect(r1[0].r.accepted).toBe(1);
+    await h.as(null, "select public.jarvis_ingest($1, 'health', $2)", [TOKEN, JSON.stringify([{ day: "2026-11-02", weight_kg: 82.4 }])]);
+    const rows = await h.as<{ energy_kcal: string; weight_kg: string }>(JASPER, "select energy_kcal, weight_kg from public.health_daily");
+    expect(rows).toEqual([{ energy_kcal: "2100.0", weight_kg: "82.40" }]);
+    expect(await h.as(MALLORY, "select * from public.health_daily")).toEqual([]);
+  });
+
+  it("rejects bad tokens and scopes the token can't use", async () => {
+    await expect(h.as(null, "select public.jarvis_ingest('nope', 'health', '[]')")).rejects.toThrow(/Invalid or revoked/);
+    await expect(h.as(null, "select public.jarvis_ingest($1, 'workouts', '[]')", [TOKEN])).rejects.toThrow(/Invalid or revoked/);
+    await expect(h.as(null, "select * from public.ingest_tokens")).rejects.toThrow();
+  });
+
+  it("dedupes messages and purges ones past retention", async () => {
+    const msg = (id: string, sent: string) => ({ source: "whatsapp", external_id: id, chat_name: "Mum", sender: "Mum", sent_at: sent, body_enc: "v1.x.y.z" });
+    const now = new Date().toISOString();
+    const old = new Date(Date.now() - 20 * 86_400_000).toISOString();
+    const r = await h.as<{ r: { accepted: number } }>(null, "select public.jarvis_ingest($1, 'messages', $2) as r", [TOKEN, JSON.stringify([msg("a", now), msg("a", now), msg("b", old)])]);
+    expect(r[0].r.accepted).toBe(2);
+    const rows = await h.as<{ external_id: string }>(JASPER, "select external_id from public.messages_inbox");
+    expect(rows.map((x) => x.external_id)).toEqual(["a"]);
+    const read = await h.as<{ r: { accepted: number } }>(null, "select public.jarvis_ingest($1, 'messages_read', $2) as r", [TOKEN, JSON.stringify([{ source: "whatsapp", external_id: "a" }])]);
+    expect(read[0].r.accepted).toBe(1);
+    expect(await h.as(JASPER, "select external_id from public.messages_inbox where seen_at is null")).toEqual([]);
+  });
+
+  it("allows the new memory kinds and Hevy connections", async () => {
+    await h.as(JASPER, "insert into public.knowledge_items (title, kind) values ('Bench goal', 'health')");
+    await h.as(JASPER, "insert into public.integration_connections (provider) values ('hevy')");
+  });
+});

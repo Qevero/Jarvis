@@ -402,3 +402,96 @@ export async function testPushAction(): Promise<ActionState> {
     return err(e);
   }
 }
+
+// ─── Personal ───────────────────────────────────────────────────────────────
+export async function savePersonalPrefsAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const ctx = await dashboardCtx("/settings");
+    const { getPrefs: loadPrefs } = await import("@/lib/ctx");
+    const { geocode } = await import("@/lib/weather");
+    const current = await loadPrefs(ctx);
+    const patch: Record<string, unknown> = {};
+    const place = s(fd, "homeLocationName");
+    if (place && place !== current.homeLocationName) {
+      const g = await geocode(place);
+      if (!g) throw new UserError(`Couldn't find "${place}".`);
+      Object.assign(patch, { homeLocationName: g.name, homeLat: g.lat, homeLon: g.lon });
+    }
+    for (const k of ["calorieTarget", "proteinTarget", "targetWeightKg", "workoutsPerWeek", "messageRetentionDays"]) {
+      const v = s(fd, k);
+      if (v !== "") patch[k] = Number(v);
+    }
+    await savePrefs(ctx, patch);
+    revalidatePath("/settings");
+    revalidatePath("/health");
+    return { ok: true, message: "Saved" };
+  } catch (e) {
+    return err(e);
+  }
+}
+
+export async function connectHevyAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const ctx = await dashboardCtx("/settings");
+    const { connectHevy, syncHevy } = await import("@/lib/hevy/client");
+    const r = await connectHevy(ctx, s(fd, "api_key"));
+    const sync = await syncHevy(ctx).catch(() => ({ workouts: 0 }));
+    revalidatePath("/settings");
+    revalidatePath("/health");
+    return { ok: true, message: `Hevy connected (${r.workouts ?? "?"} workouts; ${sync.workouts} imported).` };
+  } catch (e) {
+    return err(e);
+  }
+}
+
+export async function syncHevyAction(): Promise<ActionState> {
+  try {
+    const ctx = await dashboardCtx("/health");
+    const { syncHevy } = await import("@/lib/hevy/client");
+    const r = await syncHevy(ctx);
+    revalidatePath("/health");
+    return { ok: true, message: `${r.workouts} workouts refreshed` };
+  } catch (e) {
+    return err(e);
+  }
+}
+
+export async function createIngestTokenAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const ctx = await dashboardCtx("/settings");
+    const { createIngestToken } = await import("@/lib/services/personal");
+    const token = await createIngestToken(ctx, s(fd, "name"), fd.getAll("scopes").map(String));
+    revalidatePath("/settings");
+    return { ok: true, message: `Copy this token now — it won't be shown again: ${token}` };
+  } catch (e) {
+    return err(e);
+  }
+}
+
+export async function revokeIngestTokenAction(fd: FormData) {
+  const ctx = await dashboardCtx("/settings");
+  const { revokeIngestToken } = await import("@/lib/services/personal");
+  await revokeIngestToken(ctx, s(fd, "id"));
+  revalidatePath("/settings");
+}
+
+export async function logHealthAction(_p: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const ctx = await dashboardCtx("/health");
+    const { logHealth } = await import("@/lib/services/personal");
+    const r = await logHealth(ctx, { day: s(fd, "day") || null, weight: s(fd, "weight") || null, calories: s(fd, "calories") || null, protein: s(fd, "protein") || null });
+    revalidatePath("/health");
+    return { ok: true, message: `Logged for ${r.logged.split("-").reverse().join("/")}` };
+  } catch (e) {
+    return err(e);
+  }
+}
+
+export async function markMessagesSeenAction(fd: FormData) {
+  const ctx = await dashboardCtx("/messages");
+  const { markMessagesSeen } = await import("@/lib/services/personal");
+  const ids = fd.getAll("id").map(String).filter(Boolean);
+  await markMessagesSeen(ctx, ids.length ? ids : null);
+  revalidatePath("/messages");
+  revalidatePath("/");
+}

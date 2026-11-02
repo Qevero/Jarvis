@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Runs the Jarvis bridge every 5 minutes. Copy to ~/Library/LaunchAgents/ and edit the three marked values. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.qevero.jarvis-bridge</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <!-- EDIT: full path to jarvis_bridge.py -->
+    <string>/Users/YOU/Jarvis/desktop/bridge/jarvis_bridge.py</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- EDIT: your Jarvis URL and a device token with the "messages" permission -->
+    <key>JARVIS_URL</key><string>https://jarvis-qevero.netlify.app</string>
+    <key>JARVIS_TOKEN</key><string>jv_PASTE_TOKEN_HERE</string>
+    <key>JARVIS_RETENTION_DAYS</key><string>14</string>
+  </dict>
+  <key>StartInterval</key><integer>300</integer>
+  <key>RunAtLoad</key><true/>
+  <key>StandardOutPath</key><string>/tmp/jarvis-bridge.log</string>
+  <key>StandardErrorPath</key><string>/tmp/jarvis-bridge.log</string>
+</dict>
+</plist>

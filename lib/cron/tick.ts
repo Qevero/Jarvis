@@ -8,6 +8,7 @@ import { supabaseAdmin, ownerUserId } from "@/lib/supabase/admin";
 import { syncXero, lastSync } from "@/lib/xero/sync";
 import { gatherBriefing } from "@/lib/services/briefing";
 import { upcomingDeadlines } from "@/lib/services/tax";
+import { syncHevy } from "@/lib/hevy/client";
 
 /**
  * Hourly scheduled tick (Netlify scheduled function → /api/cron/tick):
@@ -51,6 +52,14 @@ export async function runTick(opts: { force?: boolean } = {}) {
     } else report.xero = "not connected";
   } catch (e) {
     report.xero = { error: e instanceof Error ? e.message : "failed" };
+  }
+
+  // 2b. Hevy (every 6 hours, if connected).
+  try {
+    const { data: hevy } = await ctx.sb.from("integration_connections").select("status, updated_at").eq("owner_id", ownerId).eq("provider", "hevy").maybeSingle();
+    if (hevy?.status === "active" && (opts.force || hour % 6 === 0)) report.hevy = await syncHevy(ctx);
+  } catch (e) {
+    report.hevy = { error: e instanceof Error ? e.message : "failed" };
   }
 
   // 3. Morning briefing push.

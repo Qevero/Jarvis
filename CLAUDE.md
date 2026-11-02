@@ -123,6 +123,17 @@ MCP tools: `create_invoice_draft`, `create_quote_draft`, `create_purchase_order_
 - Memory: durable knowledge (`remember`/`recall`) plus Jasper's imported Claude chat history (Claude data export), searchable from any chat. No live access to claude.ai — no API exists and the brief forbids using his Claude login.
 - Internal CRM: Qevero/qevero-crm (separate Supabase project). Read-only via a token-gated SQL function (`integrations/qevero-crm/jarvis_connector.sql`).
 
+### 4.8 Personal side (added 02/11/2026)
+
+Jarvis is Jasper's personal assistant as well as the business one.
+- Health: MyFitnessPal has no public API → Apple Health → iPhone Shortcut → `/api/ingest/health` (device token). Weight trend, calories/protein vs targets.
+- Training: Hevy API (needs Hevy Pro; key stored encrypted) or Apple Health workouts. Volume, sessions, e1RM, PRs.
+- Weather: Open-Meteo (free, non-commercial — personal briefing).
+- Missed messages: no API for WhatsApp/iMessage. Mac bridge (`desktop/bridge`) reads the local Messages and WhatsApp-desktop databases read-only; iPhone "Message" automation as a fallback. Bodies encrypted, auto-purged (default 14 days). Never use unofficial WhatsApp clients (ToS/ban risk).
+- Device ingest: `ingest_tokens` (hash only, per-device scopes) + SQL `jarvis_ingest()` (security definer, anon-callable) — no secret key on that path.
+
+MCP tools: `get_weather`, `get_health_summary`, `get_weight_trend`, `get_workouts`, `get_lift_progress`, `log_health`, `sync_hevy`, `get_missed_messages`, `mark_messages_seen`
+
 ## 5. Security and data handling
 
 - Single user (Jasper). Supabase Auth with MFA on the dashboard. RLS on every table.
@@ -157,7 +168,7 @@ Answered 01/11/2026:
 
 1. Outlook: personal Microsoft account, **qevero@outlook.com** (not Microsoft 365). Graph setup uses the personal-account ("consumers") endpoint.
 2. VAT: **quarterly**, **Standard** scheme, quarters end **Mar, Jun, Sep, Dec**. VAT number **GB531607691**. Company number **17497612**. First VAT period assumed 03/10/2026–31/12/2026 (check the certificate).
-3. Accounting year end: **31/10**. First accounting period 03/10/2026 to 31/10/2027 (to confirm with the accountant).
+3. Accounting year end: **31/10**. First accounting period 03/10/2026 to 31/10/2027. (02/11/2026: Jasper suggested 31/10/2026; explained the Companies Act rule — first ARD is the last day of the month of the first anniversary, and a first period must exceed 6 months — so 31/10/2026 isn't possible unless the ARD is changed. Confirm with the accountant / Companies House record.)
 4. Revenue streams: invoices **will be tagged** in Xero with the "Revenue Stream" tracking category.
 
 ## 9. Decisions log

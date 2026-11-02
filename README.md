@@ -1,4 +1,6 @@
-# Jarvis: Qevero's business assistant
+# Jarvis: Jasper's personal assistant for Qevero and life
+
+> **New here? Start with [`docs/GETTING-STARTED.md`](docs/GETTING-STARTED.md)**: how you'll access Jarvis, and the setup checklist in order.
 
 Jarvis is two things:
 
@@ -24,6 +26,9 @@ Jarvis is two things:
 | **CRM** | Qevero CRM pipeline, CRM tasks, tenders, recent activity (read-only) | "What's in the pipeline?" / "Any tenders closing this week?" |
 | **Tax & compliance** | Deadlines with reminders and "unverified" badges, VAT position and readiness issues, CT estimate, money to set aside, Companies House cross-check | "What do I need to set aside for tax?" / "Is the VAT return ready?" |
 | **Clients** | Clients, Xero links, monthly retainers (feeds the "retainer not invoiced" flag) | "Set World of Beds' retainer to £750 a month" |
+| **Health & training** | Calories and protein vs targets (MyFitnessPal via Apple Health), weight trend, sessions and volume, best lifts and PRs (Hevy) | "How's my protein this week?" / "How's my bench progressing?" |
+| **Missed messages** | Unread WhatsApp, iMessage and SMS, forwarded from your own Mac/iPhone, encrypted, auto-deleted | "What have I missed?" |
+| **Weather** | In the briefing (home location) | "Will it rain tomorrow?" |
 
 **What Jarvis never does:** send an email, send a calendar invitation, approve or send an invoice, or file anything with HMRC or Companies House. Emails go to **Outlook Drafts**, and the Microsoft permission doesn't even include sending. Invoices, quotes and POs are **Xero drafts**. Calendar events have **no attendees**. Every write is in the **audit log**.
 
@@ -89,6 +94,7 @@ You'll need free accounts for **Supabase**, **Netlify**, the **Xero Developer po
 2. **SQL Editor → New query.** Paste and **Run** each migration in `supabase/migrations/`, in order:
    1. `20261101000000_phase1_foundations.sql`
    2. `20261102000000_jarvis_modules.sql`
+   3. `20261103000000_personal.sql`
 3. **Create your login** in **Authentication → Users → Add user → Create new user**:
    - Use your email; it must match `JARVIS_OWNER_EMAIL`.
    - Choose a strong password.
@@ -248,6 +254,14 @@ iOS doesn't allow background "Hey Jarvis" listening, so you use a Shortcut.
 
 **Dashboard app:** open Jarvis in Safari → Share → **Add to Home Screen**. Optionally add **Shortcut 2, "Jarvis Dashboard"**: an Open URLs action with your Jarvis URL. Shortcuts open URLs in Safari rather than the home-screen app, so the icon is the better way in.
 
+### 12a. Personal: health, Hevy, messages
+
+- **Health (MyFitnessPal, weight, steps):** see [`docs/IPHONE-SHORTCUTS.md`](docs/IPHONE-SHORTCUTS.md). MyFitnessPal has no public API, so its data goes MyFitnessPal → Apple Health → the "Jarvis Health Sync" automation → Jarvis.
+- **Hevy:** paste your API key in Settings → Personal. This needs **Hevy Pro**, Hevy's paid plan. If you don't have Pro, workouts still arrive via Apple Health, but without sets and weights.
+- **Missed messages:** see [`docs/MESSAGES.md`](docs/MESSAGES.md). The Mac bridge covers WhatsApp, iMessage and SMS; the iPhone automation covers iMessage from chosen people.
+- **Goals and home location:** Settings → Personal.
+- **Device tokens:** Settings → Personal → Device tokens. Each device gets its own revocable token with only the permissions it needs. Only a hash of each token is stored.
+
 ### 12. Desktop wake word (optional)
 
 See `desktop/wake-word/README.md`: say "Hey Jarvis" and the Claude desktop app comes to the front. It runs locally with openWakeWord. **Read the model licence note first.** The pre-trained "hey jarvis" model is non-commercial, so the README explains how to train your own for free.
@@ -310,6 +324,9 @@ Set these in Netlify → Site configuration → Environment variables (scopes: B
 | Microsoft Entra / Graph | Free | App registration plus delegated Graph |
 | Web Push, Web Speech | Free | Browser built-ins plus VAPID |
 | Companies House API | Free | Optional |
+| Open-Meteo weather | Free | No key; free API is for non-commercial use (your personal briefing) |
+| Apple Health + Shortcuts, Mac bridge | Free | Your own devices |
+| Hevy API | Needs Hevy Pro (paid, Hevy's plan) | Optional; Apple Health route is free |
 
 ---
 
@@ -359,4 +376,6 @@ UK English, GBP, DD/MM/YYYY and Europe/London throughout.
 - **Xero scopes:** see the note in [Xero](#5-xero) if your app requires granular scopes.
 - **Function region:** data is stored in London. Netlify's free plan runs functions in its default (US) region, so data passes through there in transit but is never stored there.
 - **Voice mode** can't currently be started from a Shortcut, so tap it once Claude opens.
+- **WhatsApp and iMessage** have no APIs for personal use. Jarvis reads them only through your own Mac (local databases) or iPhone automations. WhatsApp desktop updates may change its database; if so, the bridge skips WhatsApp until it's updated.
+- **MyFitnessPal** has no public API; data arrives via Apple Health once a day from the Shortcut.
 - **Chat history** isn't synced live. Re-import the Claude export periodically, and rely on Claude's own memory and chat search between imports.

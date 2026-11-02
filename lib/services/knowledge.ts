@@ -3,7 +3,7 @@ import type { ParsedConversation } from "@/lib/knowledge/claude-export";
 
 /** Jarvis's memory: durable knowledge items plus searchable imported Claude chats. */
 
-export const KNOWLEDGE_KINDS = ["fact", "preference", "decision", "person", "client", "process", "idea", "goal", "lesson"] as const;
+export const KNOWLEDGE_KINDS = ["fact", "preference", "decision", "person", "client", "process", "idea", "goal", "lesson", "health", "personal"] as const;
 export type KnowledgeKind = (typeof KNOWLEDGE_KINDS)[number];
 
 const COLS = "id, kind, title, content, tags, importance, pinned, source, source_ref, created_at, updated_at";

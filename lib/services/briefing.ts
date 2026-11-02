@@ -9,6 +9,8 @@ import { bankBalances } from "@/lib/xero/map";
 import { cachedReport } from "@/lib/xero/sync";
 import { loadRevenue } from "./revenue";
 import { taxSetAside, upcomingDeadlines } from "./tax";
+import { healthSummary, loadHealth, messageCounts, weatherFor } from "./personal";
+import { weatherSentence } from "@/lib/weather";
 
 /**
  * Morning briefing: gathers today's calendar, tasks, money, deadlines and CRM
@@ -29,6 +31,7 @@ export async function gatherBriefing(ctx: Ctx) {
   const [ms, xero] = await Promise.all([connectionStatus(ctx, "microsoft"), connectionStatus(ctx, "xero")]);
   const graph = ms?.status === "active" ? new GraphClient(ctx) : null;
 
+  const [weather, health, msgCounts] = await Promise.all([safe(() => weatherFor(ctx, 3)), safe(async () => healthSummary(await loadHealth(ctx, 90), 7)), safe(() => messageCounts(ctx))]);
   const [calendar, tasks, revenue, deadlines, cash, setAside, crmOverview] = await Promise.all([
     graph ? safe(() => graph.calendar(today, today)) : null,
     graph ? safe(() => graph.listTasks()) : null,
@@ -57,6 +60,23 @@ export async function gatherBriefing(ctx: Ctx) {
     debtors: summary ? { overdue: summary.debtors.overdue, count: revenue!.aged().items.filter((i) => i.daysOverdue > 0).length } : null,
     crm: crmOverview ? { openTasksOverdue: crmCounts.tasks_overdue ?? 0, quotedPipeline: Number(crmPipeline.first_year ?? 0), tendersClosingSoon: crmCounts.tenders_closing_7d ?? 0 } : null,
     journalPrompt: journalPromptFor(today),
+    weather: weather ? { sentence: weatherSentence(weather), days: weather.days } : null,
+    health:
+      health && (health.dataSources.healthDays || health.dataSources.workouts)
+        ? {
+            yesterdayKcal: health.yesterday?.energy_kcal ?? null,
+            kcalTarget: health.nutrition.kcalTarget,
+            yesterdayProtein: health.yesterday?.protein_g ?? null,
+            proteinTarget: health.nutrition.proteinTarget,
+            weightAvg: health.weight?.latestAvg ?? null,
+            perWeekKg: health.weight?.perWeekKg ?? null,
+            sessionsThisWeek: health.training.weeks[health.training.weeks.length - 1]?.sessions ?? 0,
+            sessionsTarget: health.training.target,
+            lastWorkout: health.training.lastWorkout ? `${health.training.lastWorkout.title} (${health.training.lastWorkout.day.split("-").reverse().join("/")})` : null,
+            prs: health.records.slice(0, 3).map((r) => `${r.exercise} ${r.weightKg} kg × ${r.reps} (e1RM ${r.e1rm} kg)`),
+          }
+        : null,
+    messages: msgCounts,
   };
 
   return {

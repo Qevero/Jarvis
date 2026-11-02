@@ -51,6 +51,6 @@ export const config = {
   matcher: [
     // Everything except static assets, the PWA files, the MCP endpoint (which
     // uses OAuth bearer tokens) and the OAuth discovery metadata.
-    "/((?!_next/static|_next/image|favicon.ico|icons/|sw.js|manifest.webmanifest|offline.html|api/mcp|api/oauth-protected-resource|\\.well-known/).*)",
+    "/((?!_next/static|_next/image|favicon.ico|icons/|sw.js|manifest.webmanifest|offline.html|api/mcp|api/oauth-protected-resource|api/cron/|api/ingest/|\\.well-known/).*)",
   ],
 };

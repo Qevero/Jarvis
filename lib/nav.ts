@@ -16,6 +16,8 @@ export const NAV_ICONS = {
   vault: "M4 5h16v14H4zM4 9h16M9 13h6",
   settings: "M4 6h9m4 0h3M4 12h3m4 0h9M4 18h11m4 0h1M15 4v4M9 10v4M17 16v4",
   more: "M5 12h.01M12 12h.01M19 12h.01",
+  health: "M3 12h4l2-5 4 10 2-5h6",
+  messages: "M4 5h16v11H8l-4 4z",
 };
 
 export const NAV: NavItem[] = [
@@ -26,6 +28,8 @@ export const NAV: NavItem[] = [
   { href: "/work", label: "Work", icon: NAV_ICONS.work },
   { href: "/crm", label: "CRM", icon: NAV_ICONS.crm },
   { href: "/tax", label: "Tax", icon: NAV_ICONS.tax },
+  { href: "/health", label: "Health", icon: NAV_ICONS.health },
+  { href: "/messages", label: "Messages", icon: NAV_ICONS.messages },
   { href: "/journal", label: "Journal", icon: NAV_ICONS.journal },
   { href: "/memory", label: "Memory", icon: NAV_ICONS.memory },
   { href: "/clients", label: "Clients", icon: NAV_ICONS.clients },

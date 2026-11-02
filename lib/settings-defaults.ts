@@ -35,6 +35,17 @@ export type Prefs = {
   xeroSyncHours: number;
   /** Max Xero API calls Jarvis will make per day. */
   xeroDailyCallBudget: number;
+  /** Personal: home location for weather. */
+  homeLocationName: string;
+  homeLat: number;
+  homeLon: number;
+  /** Personal: health goals (0 = not set). */
+  calorieTarget: number;
+  proteinTarget: number;
+  targetWeightKg: number;
+  workoutsPerWeek: number;
+  /** Days to keep forwarded messages before they're deleted. */
+  messageRetentionDays: number;
 };
 
 export const DEFAULT_PREFS: Prefs = {
@@ -56,6 +67,14 @@ export const DEFAULT_PREFS: Prefs = {
   defaultPurchaseAccount: "429",
   xeroSyncHours: 6,
   xeroDailyCallBudget: 900,
+  homeLocationName: "Norwich",
+  homeLat: 52.6309,
+  homeLon: 1.2974,
+  calorieTarget: 0,
+  proteinTarget: 0,
+  targetWeightKg: 0,
+  workoutsPerWeek: 0,
+  messageRetentionDays: 14,
 };
 
 export function mergePrefs(stored: unknown): Prefs {

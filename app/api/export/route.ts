@@ -20,7 +20,7 @@ export async function GET() {
 
   const [fields, items, documents] = await Promise.all([vault.getProfile({ reveal: true }), store.listItems(), store.listDocuments()]);
   const { data: auditRows } = await supabase.from("audit_log").select("*").order("occurred_at", { ascending: true });
-  const tables = ["settings", "journal_entries", "knowledge_items", "chat_conversations", "chat_messages", "clients", "proposals", "stream_account_map", "stream_line_overrides", "deadline_status", "tax_rule_verifications", "xero_documents", "xero_contacts", "xero_invoices", "xero_invoice_lines", "xero_bank_transactions"];
+  const tables = ["settings", "journal_entries", "knowledge_items", "chat_conversations", "chat_messages", "clients", "proposals", "stream_account_map", "stream_line_overrides", "deadline_status", "tax_rule_verifications", "xero_documents", "xero_contacts", "xero_invoices", "xero_invoice_lines", "xero_bank_transactions", "health_daily", "workouts"];
   const extra: Record<string, unknown[]> = {};
   for (const t of tables) {
     const rows: unknown[] = [];
@@ -42,7 +42,7 @@ export async function GET() {
     documents,
     audit_log: auditRows ?? [],
     ...extra,
-    note_integrations: "Xero and Microsoft OAuth tokens are deliberately excluded.",
+    note_integrations: "Xero, Microsoft and Hevy credentials and device tokens are deliberately excluded. Forwarded messages are excluded (they are temporary and auto-deleted).",
   };
 
   return new NextResponse(JSON.stringify(body, null, 2), {

@@ -18,6 +18,9 @@ export type BriefingInput = {
   debtors?: { overdue: number; count: number } | null;
   crm?: { openTasksOverdue: number; quotedPipeline: number; tendersClosingSoon: number } | null;
   journalPrompt?: string | null;
+  weather?: { sentence: string; days: { date: string; summary: string; maxC: number; minC: number; rainChancePct: number | null }[] } | null;
+  health?: { yesterdayKcal: number | null; kcalTarget: number | null; yesterdayProtein: number | null; proteinTarget: number | null; weightAvg: number | null; perWeekKg: number | null; sessionsThisWeek: number; sessionsTarget: number | null; lastWorkout: string | null; prs: string[] } | null;
+  messages?: { unseen: number; chats: number; bySource: Record<string, number> } | null;
 };
 
 const gbp = (n: number) => formatGbpFromPence(Math.round(n * 100));
@@ -26,6 +29,17 @@ const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
 export function composeBriefing(b: BriefingInput) {
   const sections: { id: string; title: string; lines: string[] }[] = [];
   const spoken: string[] = [`Good morning Jasper. It's ${b.weekday} ${formatUkDate(b.today)}.`];
+
+  if (b.weather) {
+    sections.push({ id: "weather", title: "Weather", lines: [b.weather.sentence, ...b.weather.days.slice(1, 3).map((d) => `${formatUkDate(d.date)}: ${d.summary.toLowerCase()}, ${d.minC}–${d.maxC}°C${d.rainChancePct !== null ? `, ${d.rainChancePct}% rain` : ""}`)] });
+    spoken.push(b.weather.sentence);
+  }
+
+  if (b.messages && b.messages.unseen > 0) {
+    const parts = Object.entries(b.messages.bySource).map(([k, n]) => `${n} ${{ whatsapp: "WhatsApp", imessage: "iMessage", sms: "SMS" }[k] ?? k}`);
+    sections.push({ id: "messages", title: "Missed messages", lines: [`${plural(b.messages.unseen, "message")} in ${plural(b.messages.chats, "chat")} (${parts.join(", ")}). Ask Jarvis to summarise them.`] });
+    spoken.push(`You have ${plural(b.messages.unseen, "unread message")} across ${plural(b.messages.chats, "chat")}.`);
+  }
 
   if (b.calendar) {
     const lines = b.calendar.map((e) => `${e.allDay ? "All day" : e.start.slice(11, 16)} — ${e.subject}${e.location ? ` (${e.location})` : ""}`);
@@ -88,9 +102,21 @@ export function composeBriefing(b: BriefingInput) {
     if (b.crm.tendersClosingSoon) spoken.push(`${plural(b.crm.tendersClosingSoon, "tender")} closing this week.`);
   }
 
+  if (b.health) {
+    const h = b.health;
+    const lines: string[] = [];
+    if (h.yesterdayKcal !== null) lines.push(`Yesterday: ${Math.round(h.yesterdayKcal)} kcal${h.kcalTarget ? ` (target ${h.kcalTarget})` : ""}${h.yesterdayProtein !== null ? `, ${Math.round(h.yesterdayProtein)} g protein${h.proteinTarget ? ` (target ${h.proteinTarget})` : ""}` : ""}.`);
+    if (h.weightAvg !== null) lines.push(`Weight (7-day average): ${h.weightAvg} kg${h.perWeekKg !== null ? `, ${h.perWeekKg > 0 ? "+" : ""}${h.perWeekKg} kg/week` : ""}.`);
+    lines.push(`Training this week: ${plural(h.sessionsThisWeek, "session")}${h.sessionsTarget ? ` of ${h.sessionsTarget}` : ""}${h.lastWorkout ? ` · last: ${h.lastWorkout}` : ""}.`);
+    for (const pr of h.prs) lines.push(`PR: ${pr}`);
+    sections.push({ id: "health", title: "Health & training", lines });
+    if (h.yesterdayKcal !== null) spoken.push(`Yesterday you logged ${Math.round(h.yesterdayKcal)} calories.`);
+    if (h.prs.length) spoken.push(`Nice — ${h.prs.length === 1 ? "a new personal record" : `${h.prs.length} new personal records`} this fortnight.`);
+  }
+
   if (b.journalPrompt) sections.push({ id: "journal", title: "Journal prompt", lines: [b.journalPrompt] });
 
-  const headline = spoken.slice(1, 3).join(" ") || "All quiet.";
+  const headline = spoken.slice(1, 4).join(" ") || "All quiet.";
   return { headline, sections, spoken: spoken.join(" ") };
 }
 

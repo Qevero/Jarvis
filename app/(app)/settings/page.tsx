@@ -9,7 +9,8 @@ import { CopyButton } from "@/components/copy-button";
 import { ActionForm, InlineAction } from "@/components/forms";
 import { PushToggle } from "@/components/push-toggle";
 import { Panel } from "@/components/ui";
-import { disconnectAction, savePrefsAction, setupTrackingAction, syncXeroAction, testPushAction } from "../actions";
+import { connectHevyAction, createIngestTokenAction, disconnectAction, revokeIngestTokenAction, savePersonalPrefsAction, savePrefsAction, setupTrackingAction, syncXeroAction, testPushAction } from "../actions";
+import { listIngestTokens } from "@/lib/services/personal";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     trackingCategoryExists(ctx),
     supabase.from("xero_api_usage").select("day, calls").eq("owner_id", owner.id).order("day", { ascending: false }).limit(1).maybeSingle(),
   ]);
+  const [tokens, { data: hevy }] = await Promise.all([listIngestTokens(ctx), supabase.from("integration_connections").select("status, connected_at").eq("owner_id", owner.id).eq("provider", "hevy").maybeSingle()]);
+  const site = env.siteUrl();
   const connectorUrl = mcpResourceUrl();
   const num = (name: keyof typeof prefs, label: string, hint?: string) => (
     <label><span className="hud-label">{label}</span><input name={name} type="number" defaultValue={String(prefs[name])} className="input" />{hint && <span className="text-xs text-muted">{hint}</span>}</label>
@@ -104,6 +107,54 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <p className="text-sm text-muted">Free API key to cross-check filing deadlines and officers (COMPANIES_HOUSE_API_KEY).</p>
         </Panel>
       </div>
+
+      <section id="personal" className="space-y-5 scroll-mt-6">
+        <h2 className="hud-label pt-2">Personal</h2>
+        <div className="grid gap-5 xl:grid-cols-2">
+          <Panel title="Home, goals and privacy">
+            <ActionForm action={savePersonalPrefsAction} submit="Save">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="sm:col-span-2"><span className="hud-label">Home (for weather)</span><input name="homeLocationName" defaultValue={prefs.homeLocationName} className="input" /></label>
+                <label><span className="hud-label">Calorie target (kcal)</span><input name="calorieTarget" type="number" defaultValue={prefs.calorieTarget || ""} className="input" /></label>
+                <label><span className="hud-label">Protein target (g)</span><input name="proteinTarget" type="number" defaultValue={prefs.proteinTarget || ""} className="input" /></label>
+                <label><span className="hud-label">Target weight (kg)</span><input name="targetWeightKg" type="number" step="0.1" defaultValue={prefs.targetWeightKg || ""} className="input" /></label>
+                <label><span className="hud-label">Workouts per week</span><input name="workoutsPerWeek" type="number" defaultValue={prefs.workoutsPerWeek || ""} className="input" /></label>
+                <label className="sm:col-span-2"><span className="hud-label">Keep forwarded messages for (days)</span><input name="messageRetentionDays" type="number" min={1} max={90} defaultValue={prefs.messageRetentionDays} className="input" /></label>
+              </div>
+            </ActionForm>
+          </Panel>
+          <Panel title="Hevy (lifts and sessions)" action={hevy?.status === "active" ? <span className="badge border-ok/50 text-ok">● Connected</span> : <span className="badge">○ Not connected</span>}>
+            <p className="mb-2 text-sm text-muted">Hevy&apos;s API needs Hevy Pro. Get your key in Hevy → Settings → Developer (or hevy.com/settings?developer). Without Pro, workouts still arrive via Apple Health (no sets/weights).</p>
+            <ActionForm action={connectHevyAction} submit={hevy?.status === "active" ? "Replace key" : "Connect Hevy"}>
+              <input name="api_key" type="password" autoComplete="off" placeholder="Hevy API key" className="input" />
+            </ActionForm>
+          </Panel>
+        </div>
+        <Panel title="Device tokens (iPhone Shortcuts, Mac bridge)">
+          <p className="mb-3 text-sm text-muted">Your iPhone and Mac send health data and messages to Jarvis with a device token. Create one per device, with only the permissions it needs. Revoke any time.</p>
+          <dl className="mb-4 grid gap-1 text-xs sm:grid-cols-[9rem_1fr]">
+            <dt className="text-muted">Health URL</dt><dd className="break-all font-mono">{site}/api/ingest/health</dd>
+            <dt className="text-muted">Workouts URL</dt><dd className="break-all font-mono">{site}/api/ingest/workouts</dd>
+            <dt className="text-muted">Messages URL</dt><dd className="break-all font-mono">{site}/api/ingest/messages?retention_days={prefs.messageRetentionDays}</dd>
+          </dl>
+          <ActionForm action={createIngestTokenAction} submit="Create token">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input name="name" placeholder="Device name, e.g. iPhone" required className="input sm:max-w-xs" />
+              {["health", "workouts", "messages"].map((sc) => <label key={sc} className="flex items-center gap-2 text-sm"><input type="checkbox" name="scopes" value={sc} defaultChecked={sc !== "messages"} className="h-5 w-5" /> {sc}</label>)}
+            </div>
+          </ActionForm>
+          {tokens.length > 0 && (
+            <ul className="mt-4 divide-y divide-line text-sm">
+              {tokens.map((t) => (
+                <li key={t.id} className="flex items-center justify-between gap-3 py-2">
+                  <span>{t.name} <span className="text-xs text-muted">· {t.scopes.join(", ")} · {t.revoked_at ? "revoked" : t.last_used_at ? `last used ${formatUkDateTime(t.last_used_at)}` : "not used yet"}</span></span>
+                  {!t.revoked_at && <InlineAction action={revokeIngestTokenAction} fields={{ id: t.id }} label="Revoke" className="btn btn-ghost btn-sm text-danger" />}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </section>
 
       <Panel title="Notifications">
         <p className="mb-3 text-sm text-muted">Morning briefing at {String(prefs.briefingHour).padStart(2, "0")}:00 and deadline reminders {prefs.reminderLeadDays.join("/")} days before. On iPhone, open Jarvis from the Home Screen icon, then enable here.</p>
