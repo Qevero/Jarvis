@@ -45,3 +45,6 @@ next-env.d.ts
 
 # reference clone of the internal CRM (separate repo, never commit)
 /qevero-crm/
+
+__pycache__/
+*.pyc
